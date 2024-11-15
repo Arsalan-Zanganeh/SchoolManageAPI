@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Student, Teacher
+from .models import User, Student, Teacher, School, Classes, ClassStudent
 import re
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -10,9 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'National_ID', 'Phone_Number', 'password',
-                  'password2', 'School_Name', 'School_Type', 'Education_Level', 'Province',
-                  'City', 'Address']
+        fields = ['id', 'first_name', 'last_name', 'National_ID', 'Phone_Number', 'password', 'password2']
 
     def validate(self, attrs):
         otherStudent = Student.objects.filter(National_ID=attrs['National_ID']).first()
@@ -43,26 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'last_name': 'Last name cannot be empty.'}
             )
-        if not attrs.get('School_Type'):
-            raise serializers.ValidationError(
-                {'School_Type': 'School type must be selected.'}
-            )
-        if not attrs.get('Education_Level'):
-            raise serializers.ValidationError(
-                {'Education_Level': 'Education level must be selected.'}
-            )
-        if not attrs.get('Province'):
-            raise serializers.ValidationError(
-                {'Province': 'Province cannot be empty.'}
-            )
-        if not attrs.get('City'):
-            raise serializers.ValidationError(
-                {'City': 'City cannot be empty.'}
-            )
-        if not attrs.get('Address'):
-            raise serializers.ValidationError(
-                {'Address': 'Address cannot be empty.'}
-            )
 
         return attrs
 
@@ -72,13 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name'],
             username=validated_data['National_ID'],
             National_ID=validated_data['National_ID'],
-            Phone_Number=validated_data['Phone_Number'],
-            School_Name=validated_data['School_Name'],
-            Province=validated_data['Province'],
-            City=validated_data['City'],
-            Address=validated_data['Address'],
-            School_Type=validated_data['School_Type'],
-            Education_Level=validated_data['Education_Level'],
+            Phone_Number=validated_data['Phone_Number']
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -223,3 +195,121 @@ class TeacherSerializer(serializers.ModelSerializer):
         teacher.save()
 
         return teacher
+
+class SchoolSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = School
+        fields = ['id', 'School_Name', 'School_Type', 'Education_Level', 'Province',
+                  'City', 'Address', 'Postal_Code', 'Principal']
+
+    def validate(self, attrs):
+        if not attrs.get('School_Type'):
+            raise serializers.ValidationError(
+                {'School_Type': 'School type must be selected.'}
+            )
+        if not attrs.get('Education_Level'):
+            raise serializers.ValidationError(
+                {'Education_Level': 'Education level must be selected.'}
+            )
+        if not attrs.get('Province'):
+            raise serializers.ValidationError(
+                {'Province': 'Province cannot be empty.'}
+            )
+        if not attrs.get('City'):
+            raise serializers.ValidationError(
+                {'City': 'City cannot be empty.'}
+            )
+        if not attrs.get('Address'):
+            raise serializers.ValidationError(
+                {'Address': 'Address cannot be empty.'}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        school = School.objects.create(
+            School_Name=validated_data['School_Name'],
+            Province=validated_data['Province'],
+            City=validated_data['City'],
+            Address=validated_data['Address'],
+            School_Type=validated_data['School_Type'],
+            Education_Level=validated_data['Education_Level'],
+            Postal_Code=validated_data['Postal_Code'],
+            Principal=validated_data['Principal']
+        )
+        school.save()
+
+        return school
+
+class ClassSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Classes
+        fields = ['id', 'School', 'Topic', 'Teacher', 'Session1Day',
+                  'Session2Day', 'Session1Time', 'Session2Time']
+
+    def validate(self, attrs):
+        if not attrs.get('School'):
+            raise serializers.ValidationError(
+                {'School': 'School must be selected.'}
+            )
+        if not attrs.get('Topic'):
+            raise serializers.ValidationError(
+                {'Topic': 'Topic must be selected.'}
+            )
+        if not attrs.get('Teacher'):
+            raise serializers.ValidationError(
+                {'Teacher': 'Teacher cannot be empty.'}
+            )
+        if not attrs.get('Session1Day'):
+            raise serializers.ValidationError(
+                {'Session1Day': 'Session1Day cannot be empty.'}
+            )
+        if not attrs.get('Session1Time'):
+            raise serializers.ValidationError(
+                {'Session1Time': 'Session1Time cannot be empty.'}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        myclass = Classes.objects.create(
+            School=validated_data['School'],
+            Topic=validated_data['Topic'],
+            Teacher=validated_data['Teacher'],
+            Session1Day=validated_data['Session1Day'],
+            Session2Day=validated_data['Session2Day'],
+            Session1Time=validated_data['Session1Time'],
+            Session2Time=validated_data['Session2Time'],
+        )
+        myclass.save()
+
+        return myclass
+
+class ClassStudentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = School
+        fields = ['id', 'Classes', 'Student']
+
+    def validate(self, attrs):
+        if not attrs.get('Classes'):
+            raise serializers.ValidationError(
+                {'School_Type': 'School type must be selected.'}
+            )
+        if not attrs.get('Student'):
+            raise serializers.ValidationError(
+                {'Student': 'Student must be selected.'}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        myclass = ClassStudent.objects.create(
+            School=validated_data['School'],
+            Student=validated_data['Student'],
+        )
+        myclass.save()
+
+        return myclass
