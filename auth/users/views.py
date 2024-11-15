@@ -42,8 +42,8 @@ class LoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        # response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'jwt': token
         }
@@ -183,8 +183,8 @@ class LoginSchoolView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='school', value=token, httponly=True)
-        # response.set_cookie(key='school', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='school', value=token, httponly=True)
+        response.set_cookie(key='school', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'school': token
         }
