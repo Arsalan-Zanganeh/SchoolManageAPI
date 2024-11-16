@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, SchoolSerializer, ClassSerializer, \
     ClassStudentSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student
+from django.db.models import F
 import jwt, datetime
 
 
@@ -89,6 +90,22 @@ class AddStudentView(APIView):
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Expired token!")
 
+        school = request.COOKIES.get('school')
+
+        if not school:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload2 = jwt.decode(school, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload2['Postal_Code']).first()
+
+        if not school:
+            raise AuthenticationFailed("School not found!")
+
+        request.data['School']=school.pk
         serializer = StudentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -256,40 +273,41 @@ class EditClassView(APIView):
 
         school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
         mydata = request.data
-        myclass = Classes.objects.filter(school=school,pk=mydata['id']).first()
+        mydata['School']=school.pk
+        myclass = Classes.objects.filter(School=school,pk=mydata['id']).first()
 
-        if len(mydata['Teacher']>0):
+        if mydata['Teacher']:
             teacher = Teacher.objects.filter(National_ID=mydata['Teacher']).first()
             mydata['Teacher'] = teacher.pk
         else:
             mydata['Teacher'] = myclass.Teacher.pk
 
-        if len(mydata['Topic']) > 0:
+        if mydata['Topic']:
             myclass.Topic = mydata['Topic']
         else:
             mydata['Topic'] = myclass.Topic
 
-        if len(mydata['Session1Day'])>0:
+        if mydata['Session1Day']:
             myclass.Session1Day = mydata['Session1Day']
         else:
             mydata['Session1Day'] = myclass.Session1Day
 
-        if len(mydata['Session2Day'])>0:
+        if mydata['Session2Day']:
             myclass.Session2Day = mydata['Session2Day']
         else:
             mydata['Session2Day'] = myclass.Session2Day
 
-        if len(mydata['Session1Time'])>0:
+        if mydata['Session1Time']:
             myclass.Session1Time = mydata['Session1Time']
         else:
             mydata['Session1Time'] = myclass.Session1Time
 
-        if len(mydata['Session2Time'])>0:
+        if mydata['Session2Time']:
             myclass.Session2Time = mydata['Session2Time']
         else:
             mydata['Session2Time'] = myclass.Session2Time
 
-        serializer = SchoolSerializer(instance=myclass, data=mydata)
+        serializer = ClassSerializer(instance=myclass, data=mydata)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -306,7 +324,7 @@ class DeleteClassView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
-        myclass = Classes.objects.filter(school=school,pk=request.data['id']).first()
+        myclass = Classes.objects.filter(School=school,pk=request.data['id']).first()
 
         if not myclass:
             raise AuthenticationFailed("Class not found!")
@@ -331,11 +349,14 @@ class AddClassStudentView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
-        myclass = Classes.objects.filter(school=school,pk=request.data['id']).first()
-        request.data['National_ID'] = myclass.National_ID
-
-        students = ClassStudent.objects.filter(Classes=myclass).all()
-        serializer = ClassStudentSerializer(students, many=True)
+        myclass = Classes.objects.filter(School=school,pk=request.data['Classes']).first()
+        student = Student.objects.filter(National_ID=request.data['Student'],School=school).first()
+        if not myclass:
+            raise AuthenticationFailed("Class not found!")
+        if not student:
+            raise AuthenticationFailed("Student not found!")
+        request.data['Student'] = student.pk
+        serializer = ClassStudentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -352,11 +373,48 @@ class ClassStudentView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
-        myclass = Classes.objects.filter(school=school,pk=request.data['id']).first()
+        myclass = Classes.objects.filter(School=school,pk=request.data['id']).first()
 
 
-        students = ClassStudent.objects.filter(Classes=myclass).all()
-        serializer = ClassStudentSerializer(instance=students, many=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        students = ClassStudent.objects.filter(Classes=myclass).values_list('Student__National_ID', flat=True).all()
+        if not students:
+            raise AuthenticationFailed("Student not found!")
+        students2 = Student.objects.filter(National_ID__in=students).all()
+        if not students2:
+            raise AuthenticationFailed("Students not found!")
+
+        serializer = StudentSerializer(students2, many=True)
         return Response(serializer.data)
+
+class DeleteClassStudentView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('school')
+        if not token:
+            raise AuthenticationFailed("School Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        myclass = Classes.objects.filter(School=school,pk=request.data['id']).first()
+        student = Student.objects.filter(National_ID=request.data['Student'],School=school).first()
+
+        if not myclass:
+            raise AuthenticationFailed("Class not found!")
+
+        if not student:
+            raise AuthenticationFailed("Student not found!")
+
+        obj = ClassStudent.objects.filter(Classes=myclass,Student=student).first()
+        if not obj:
+            raise AuthenticationFailed("This Student is not in the class!")
+
+        obj.delete()
+        response = Response()
+        response.data = {
+            'message': 'Your Student has been removed from class.'
+        }
+
+        return response

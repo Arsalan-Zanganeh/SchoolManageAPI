@@ -3,10 +3,11 @@ from django.shortcuts import render
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import TeacherSerializer
-from users.models import Teacher
+from users.serializers import TeacherSerializer, ClassSerializer
+from users.models import Teacher, ClassStudent, Classes
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
+
 
 
 # Create your views here.
@@ -32,7 +33,8 @@ class TeacherLoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'jwt': token
         }
@@ -65,3 +67,24 @@ class TeacherLogoutView(APIView):
         }
 
         return response
+
+class TeacherClassesView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Teacher Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+
+        classes = Classes.objects.filter(Teacher=teacher).all()
+        if not classes:
+            raise AuthenticationFailed("Class not found!")
+
+        serializer = ClassSerializer(classes, many=True)
+        return Response(serializer.data)
+

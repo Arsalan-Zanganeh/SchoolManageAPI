@@ -66,7 +66,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['id', 'first_name', 'last_name', 'National_ID', 'Father_Phone_Number',
                   'Father_first_name', 'Father_last_name', 'Grade_Level', 'password',
-                  'password2', 'Address', 'LandLine']
+                  'password2', 'Address', 'LandLine', 'School']
 
     def validate(self, attrs):
         otherPrincipal = User.objects.filter(National_ID=attrs['National_ID']).first()
@@ -117,6 +117,10 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'Address': 'Address cannot be empty.'}
             )
+        if not attrs.get('School'):
+            raise serializers.ValidationError(
+                {'School': 'School cannot be empty.'}
+            )
 
         return attrs
 
@@ -126,6 +130,7 @@ class StudentSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name'],
             National_ID=validated_data['National_ID'],
             Father_Phone_Number=validated_data['Father_Phone_Number'],
+            School=validated_data['School'],
             LandLine =validated_data['LandLine'],
             Father_first_name=validated_data['Father_first_name'],
             Father_last_name=validated_data['Father_last_name'],
@@ -290,13 +295,13 @@ class ClassSerializer(serializers.ModelSerializer):
 class ClassStudentSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = School
+        model = ClassStudent
         fields = ['id', 'Classes', 'Student']
 
     def validate(self, attrs):
         if not attrs.get('Classes'):
             raise serializers.ValidationError(
-                {'School_Type': 'School type must be selected.'}
+                {'Class': 'Class must be selected.'}
             )
         if not attrs.get('Student'):
             raise serializers.ValidationError(
@@ -307,7 +312,7 @@ class ClassStudentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         myclass = ClassStudent.objects.create(
-            School=validated_data['School'],
+            Classes=validated_data['Classes'],
             Student=validated_data['Student'],
         )
         myclass.save()
