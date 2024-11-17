@@ -1,6 +1,31 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 
+class MyUserManager(BaseUserManager):
+    def create_user(self, National_ID, first_name, last_name, username, Phone_Number, password=None):
+        if not National_ID:
+            raise ValueError('Users must have an National_ID')
+
+        user = self.model(
+            National_ID=National_ID,
+            first_name=first_name,
+            last_name=last_name,
+            username=National_ID,
+            Phone_Number=Phone_Number
+        )
+
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, National_ID, password=None):
+        user = self.model(
+            National_ID=National_ID
+        )
+        user.is_admin = True
+        print(password)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
 # Create your models here.
 class User(AbstractUser):
@@ -29,8 +54,22 @@ class User(AbstractUser):
     USERNAME_FIELD = 'National_ID'
     REQUIRED_FIELDS = ['password']
 
-    def __str__(self):
-        return self.username
+    is_admin = models.BooleanField(default=False)
+
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
+
+    def has_module_perms(self, app_label):
+        return self.is_admin
+
+    objects = MyUserManager()
+
+    @property
+    def is_staff(self):
+        return self.is_admin
+
+    def get_short_name(self):
+        return self.National_ID
 
 class School(models.Model):
     SchoolType = [
