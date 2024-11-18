@@ -1,12 +1,13 @@
 from http.client import responses
 
 from django.contrib.sessions.models import Session
+from django.core.serializers import serialize
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, SchoolSerializer, ClassSerializer, \
-    ClassStudentSerializer
-from .models import User, School, Classes, Teacher, ClassStudent, Student
+    ClassStudentSerializer, UserProfileCompleteSerializer, UserProfileHalfSerializer, UserProfileOnlySerializer
+from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile
 from django.db.models import F
 import jwt, datetime
 
@@ -18,6 +19,9 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        user = User.objects.get(National_ID=request.data['National_ID'])
+        prof = UserProfile.objects.create(user=user)
+        prof.save()
         return Response(serializer.data)
 
 class LoginView(APIView):
@@ -43,8 +47,8 @@ class LoginView(APIView):
 
         response = Response()
 
-        # response.set_cookie(key='jwt', value=token, httponly=True)
-        response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
+        response.set_cookie(key='jwt', value=token, httponly=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'jwt': token
         }
@@ -163,6 +167,45 @@ class SchoolView(APIView):
         user = User.objects.filter(National_ID=payload['National_ID']).first()
         schools = School.objects.filter(Principal=user).all()
         serializer = SchoolSerializer(schools, many=True)
+        return Response(serializer.data)
+
+class UserProfileView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        user = User.objects.filter(National_ID=payload['National_ID']).first()
+        serializer = UserProfileCompleteSerializer(user)
+        return Response(serializer.data)
+
+class UserProfileEditView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        user = User.objects.filter(National_ID=payload['National_ID']).first()
+        prof = UserProfile.objects.filter(user=user).first()
+        serializer1 = UserProfileHalfSerializer(instance=user, data=request.data)
+        serializer2 = UserProfileOnlySerializer(instance=prof, data=request.data)
+        serializer1.is_valid(raise_exception=True)
+        serializer2.is_valid(raise_exception=True)
+        serializer1.save()
+        serializer2.save()
+        serializer = UserProfileCompleteSerializer(user)
         return Response(serializer.data)
 
 class LoginSchoolView(APIView):

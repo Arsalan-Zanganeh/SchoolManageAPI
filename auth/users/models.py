@@ -29,25 +29,9 @@ class MyUserManager(BaseUserManager):
 
 # Create your models here.
 class User(AbstractUser):
-    # SchoolType = [
-    #     ('public', 'Public'),
-    #     ('private', 'Private'),
-    # ]
-    #
-    # EducationLevel = [
-    #     ('primary', 'Primary'),
-    #     ('middle', 'Middle'),
-    #     ('high school', 'High School'),
-    # ]
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     Phone_Number = models.CharField(max_length=11, unique=True)
-    # School_Name = models.CharField(max_length=60)
-    # Province = models.CharField(max_length=40)
-    # City = models.CharField(max_length=40)
-    # Address = models.CharField(max_length=100)
-    # School_Type = models.CharField(max_length=10, choices=SchoolType, blank=False)
-    # Education_Level = models.CharField(max_length=20, choices=EducationLevel, blank=False)
     National_ID = models.CharField(max_length=10, unique=True)
 
 
@@ -91,6 +75,11 @@ class School(models.Model):
     Education_Level = models.CharField(max_length=20, choices=EducationLevel, blank=False)
     Postal_Code = models.CharField(max_length=10, unique=True)
     Principal = models.ForeignKey(User, on_delete=models.CASCADE)
+
+class UserProfile(models.Model):
+    bio = models.CharField(max_length=300)
+    profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='UserProfile')
 
 class Student(models.Model):
 
