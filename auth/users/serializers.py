@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile
+from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile
 import re
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -62,13 +62,13 @@ class UserProfileOnlySerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['bio', 'profile_image']
 
-class UserProfileHalfSerializer(serializers.ModelSerializer):
+class UserProfileHalfSerializer(serializers.ModelSerializer):##
 
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'National_ID', 'Phone_Number', 'UserProfile']
 
-class UserProfileCompleteSerializer(serializers.ModelSerializer):
+class UserProfileCompleteSerializer(serializers.ModelSerializer):##
     UserProfile = UserProfileOnlySerializer(many=True)
 
     class Meta:
@@ -159,6 +159,24 @@ class StudentSerializer(serializers.ModelSerializer):
         student.save()
 
         return student
+class SchoolProfileOnlySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SchoolProfile
+        fields = ['information', 'profile_image']
+
+class SchoolProfileHalfSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = School
+        fields = ['information', 'profile_image']
+
+class SchoolProfileCompleteSerializer(serializers.ModelSerializer):
+    SchoolProfile = SchoolProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = School
+        fields = ['information', 'profile_image']
+
 
 class TeacherSerializer(serializers.ModelSerializer):
 

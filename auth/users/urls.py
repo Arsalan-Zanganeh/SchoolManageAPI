@@ -3,7 +3,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView, AddTeacherView, AddSchoolView, \
     SchoolView, LoginSchoolView, LogoutSchoolView, ClassView, AddClassView, EditClassView, DeleteClassView, \
-    AddClassStudentView, ClassStudentView, DeleteClassStudentView, UserProfileView, UserProfileEditView
+    AddClassStudentView, ClassStudentView, DeleteClassStudentView, UserProfileView, UserProfileEditView, \
+    SchoolProfileView, SchoolProfileEditView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -25,4 +26,6 @@ urlpatterns = [
     path('delete_class_student/', DeleteClassStudentView.as_view()),
     path('user/profile/', UserProfileView.as_view()),
     path('user/profile_edit/', UserProfileEditView.as_view()),
+    path('shcool/profile', SchoolProfileView.as_view()),
+    path('school/profile_edit', SchoolProfileEditView.as_view())
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

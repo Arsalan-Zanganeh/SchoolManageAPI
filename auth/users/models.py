@@ -76,6 +76,10 @@ class School(models.Model):
     Postal_Code = models.CharField(max_length=10, unique=True)
     Principal = models.ForeignKey(User, on_delete=models.CASCADE)
 
+class SchoolProfile(models.Model):
+    Information = models.TextField()
+    profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='SchoolProfile')
 class UserProfile(models.Model):
     bio = models.CharField(max_length=300)
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
