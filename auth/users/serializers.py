@@ -169,14 +169,16 @@ class SchoolProfileHalfSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = School
-        fields = ['information', 'profile_image']
+        fields = fields = ['School_Name', 'School_Type', 'Education_Level', 'Province',
+                  'City', 'Address', 'Postal_Code']
 
 class SchoolProfileCompleteSerializer(serializers.ModelSerializer):
     SchoolProfile = SchoolProfileOnlySerializer(many=True)
 
     class Meta:
         model = School
-        fields = ['information', 'profile_image']
+        fields = fields = ['School_Name', 'School_Type', 'Education_Level', 'Province',
+                  'City', 'Address', 'Postal_Code', 'SchoolProfile']
 
 
 class TeacherSerializer(serializers.ModelSerializer):
@@ -284,6 +286,9 @@ class SchoolSerializer(serializers.ModelSerializer):
             Principal=validated_data['Principal']
         )
         school.save()
+
+        prof = SchoolProfile.objects.create(school=school)
+        prof.save()
 
         return school
 

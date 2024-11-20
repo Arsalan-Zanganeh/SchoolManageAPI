@@ -27,7 +27,7 @@ urlpatterns = [
     path('delete_class_student/', DeleteClassStudentView.as_view()),
     path('user/profile/', UserProfileView.as_view()),
     path('user/profile_edit/', UserProfileEditView.as_view()),
-    path('shcool/profile/', SchoolProfileView.as_view()),
+    path('school/profile/', SchoolProfileView.as_view()),
     path('school/profile_edit/', SchoolProfileEditView.as_view()),
     path('student/profile/', StudentProfileView.as_view()),
     path('student/profile_edit/', StudentProfileEditView.as_view()),

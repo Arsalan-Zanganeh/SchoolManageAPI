@@ -78,7 +78,7 @@ class School(models.Model):
 
 
 class SchoolProfile(models.Model):
-    Information = models.TextField()
+    information = models.TextField()
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='SchoolProfile')
 class UserProfile(models.Model):

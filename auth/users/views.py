@@ -218,44 +218,6 @@ class UserProfileEditView(APIView):
         serializer2.save()
         serializer = UserProfileCompleteSerializer(user)
         return Response(serializer.data)
-class SchoolProfileView(APIView):
-    def get(self, request):
-        token = request.COOKIES.get('school')
-
-        if not token:
-            raise AuthenticationFailed("Unauthenticated!")
-
-        try:
-            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Expired token!")
-
-        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
-        serializer = SchoolProfileCompleteSerializer(school)
-        return Response(serializer.data)
-
-class SchoolProfileEditView(APIView):
-    def post(self, request):
-        token = request.COOKIES.get('school')#school
-
-        if not token:
-            raise AuthenticationFailed("Unauthenticated!")
-
-        try:
-            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Expired token!")
-
-        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
-        prof = SchoolProfile.objects.filter(school=school).first()
-        serializer1 = SchoolProfileHalfSerializer(instance=school, data=request.data)
-        serializer2 = SchoolProfileOnlySerializer(instance=prof, data=request.data)
-        serializer1.is_valid(raise_exception=True)
-        serializer2.is_valid(raise_exception=True)
-        serializer1.save()
-        serializer2.save()
-        serializer = SchoolProfileCompleteSerializer(school)
-        return Response(serializer.data)
 
 class LoginSchoolView(APIView):
     def post(self, request):
@@ -612,6 +574,55 @@ class TeacherProfileEditView(APIView):
         serializer1.save()
         serializer2.save()
         serializer = TeacherProfileCompleteSerializer(teacher)
+
+
+
+        return Response(serializer.data)
+class SchoolProfileView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('school')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        serializer = SchoolProfileCompleteSerializer(school)
+        return Response(serializer.data)
+
+class SchoolProfileEditView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('school')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+
+        if request.data["Old_Password"]:
+            if check_password(request.data["Old_Password"], school.password):
+                school.password = make_password(request.data["New_Password"])
+            else:
+                raise AuthenticationFailed("Pass is not correct.")
+
+
+        prof = SchoolProfile.objects.filter(school=school).first()
+        serializer1 = SchoolProfileHalfSerializer(instance=school, data=request.data)
+        serializer2 = SchoolProfileOnlySerializer(instance=prof, data=request.data)
+        serializer1.is_valid(raise_exception=True)
+        serializer2.is_valid(raise_exception=True)
+        serializer1.save()
+        serializer2.save()
+        serializer = SchoolProfileCompleteSerializer(school)
 
 
 
