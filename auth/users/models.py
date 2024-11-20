@@ -139,6 +139,10 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.National_ID
+class TeacherProfile(models.Model):
+    profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
+    bio = models.TextField()
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='TeacherProfile')
 
 class Classes(models.Model):
     Days = [
