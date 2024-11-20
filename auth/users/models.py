@@ -76,6 +76,11 @@ class School(models.Model):
     Postal_Code = models.CharField(max_length=10, unique=True)
     Principal = models.ForeignKey(User, on_delete=models.CASCADE)
 
+
+class SchoolProfile(models.Model):
+    information = models.TextField()
+    profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='SchoolProfile')
 class UserProfile(models.Model):
     bio = models.CharField(max_length=300)
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
@@ -97,6 +102,7 @@ class Student(models.Model):
         ('11', '11'),
         ('12', '12'),
     ]
+
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     Father_Phone_Number = models.CharField(max_length=11, unique=True)
@@ -115,7 +121,10 @@ class Student(models.Model):
 
     def __str__(self):
         return self.National_ID
-
+class StudentProfile(models.Model):
+    profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
+    bio = models.TextField()
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='StudentProfile')
 class Teacher(models.Model):
 
     first_name = models.CharField(max_length=100)
@@ -130,6 +139,10 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.National_ID
+class TeacherProfile(models.Model):
+    profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
+    bio = models.TextField()
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='TeacherProfile')
 
 class Classes(models.Model):
     Days = [

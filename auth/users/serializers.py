@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile
+from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
+    StudentProfile, TeacherProfile
 import re
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -62,13 +63,13 @@ class UserProfileOnlySerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['bio', 'profile_image']
 
-class UserProfileHalfSerializer(serializers.ModelSerializer):
+class UserProfileHalfSerializer(serializers.ModelSerializer):##
 
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'National_ID', 'Phone_Number', 'UserProfile']
 
-class UserProfileCompleteSerializer(serializers.ModelSerializer):
+class UserProfileCompleteSerializer(serializers.ModelSerializer):##
     UserProfile = UserProfileOnlySerializer(many=True)
 
     class Meta:
@@ -159,6 +160,26 @@ class StudentSerializer(serializers.ModelSerializer):
         student.save()
 
         return student
+class SchoolProfileOnlySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SchoolProfile
+        fields = ['information', 'profile_image']
+
+class SchoolProfileHalfSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = School
+        fields = fields = ['School_Name', 'School_Type', 'Education_Level', 'Province',
+                  'City', 'Address', 'Postal_Code']
+
+class SchoolProfileCompleteSerializer(serializers.ModelSerializer):
+    SchoolProfile = SchoolProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = School
+        fields = fields = ['School_Name', 'School_Type', 'Education_Level', 'Province',
+                  'City', 'Address', 'Postal_Code', 'SchoolProfile']
+
 
 class TeacherSerializer(serializers.ModelSerializer):
 
@@ -217,6 +238,9 @@ class TeacherSerializer(serializers.ModelSerializer):
         )
         teacher.save()
 
+        prof = TeacherProfile.objects.create(teacher=teacher)
+        prof.save()
+
         return teacher
 
 class SchoolSerializer(serializers.ModelSerializer):
@@ -262,6 +286,9 @@ class SchoolSerializer(serializers.ModelSerializer):
             Principal=validated_data['Principal']
         )
         school.save()
+
+        prof = SchoolProfile.objects.create(school=school)
+        prof.save()
 
         return school
 
@@ -336,3 +363,38 @@ class ClassStudentSerializer(serializers.ModelSerializer):
         myclass.save()
 
         return myclass
+class StudentProfileOnlySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentProfile
+        fields = ['bio', 'profile_image']
+
+class StudentProfileHalfSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Student
+        fields = []
+
+class StudentProfileCompleteSerializer(serializers.ModelSerializer):
+    StudentProfile = StudentProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = Student
+        fields = ["first_name", "last_name", "Father_Phone_Number", "LandLine", "Father_first_name",
+                  "Father_last_name", "School", "Address", "Grade_Level", "National_ID", "StudentProfile"]
+class TeacherProfileOnlySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherProfile
+        fields = ['bio', 'profile_image']
+
+class TeacherProfileHalfSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Teacher
+        fields = []
+
+class TeacherProfileCompleteSerializer(serializers.ModelSerializer):
+    TeacherProfile = TeacherProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = Teacher
+        fields = ["first_name", "last_name",  "Address", "National_ID", "TeacherProfile"]
