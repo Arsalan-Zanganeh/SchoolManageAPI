@@ -78,11 +78,11 @@ class School(models.Model):
 
 
 class SchoolProfile(models.Model):
-    information = models.TextField()
+    information = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='SchoolProfile')
 class UserProfile(models.Model):
-    bio = models.CharField(max_length=300)
+    bio = models.CharField(max_length=300, blank=True, null=True)
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='UserProfile')
 
@@ -123,7 +123,7 @@ class Student(models.Model):
         return self.National_ID
 class StudentProfile(models.Model):
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
-    bio = models.TextField()
+    bio = models.TextField(blank=True, null=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='StudentProfile')
 class Teacher(models.Model):
 
@@ -141,7 +141,7 @@ class Teacher(models.Model):
         return self.National_ID
 class TeacherProfile(models.Model):
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
-    bio = models.TextField()
+    bio = models.TextField(blank=True, null=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='TeacherProfile')
 
 class Classes(models.Model):

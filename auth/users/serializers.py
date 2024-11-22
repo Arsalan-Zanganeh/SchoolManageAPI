@@ -67,14 +67,14 @@ class UserProfileHalfSerializer(serializers.ModelSerializer):##
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'National_ID', 'Phone_Number', 'UserProfile']
+        fields = ['Phone_Number', 'UserProfile']
 
 class UserProfileCompleteSerializer(serializers.ModelSerializer):##
     UserProfile = UserProfileOnlySerializer(many=True)
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'National_ID', 'Phone_Number', 'UserProfile']
+        fields = ['Phone_Number', 'UserProfile']
 
 class StudentSerializer(serializers.ModelSerializer):
 
@@ -363,6 +363,7 @@ class ClassStudentSerializer(serializers.ModelSerializer):
         myclass.save()
 
         return myclass
+
 class StudentProfileOnlySerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
@@ -372,15 +373,15 @@ class StudentProfileHalfSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        fields = []
+        fields = ["LandLine", "Address", "Grade_Level"]
 
 class StudentProfileCompleteSerializer(serializers.ModelSerializer):
     StudentProfile = StudentProfileOnlySerializer(many=True)
 
     class Meta:
         model = Student
-        fields = ["first_name", "last_name", "Father_Phone_Number", "LandLine", "Father_first_name",
-                  "Father_last_name", "School", "Address", "Grade_Level", "National_ID", "StudentProfile"]
+        fields = ["LandLine", "Address", "Grade_Level", "StudentProfile"]
+
 class TeacherProfileOnlySerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherProfile
@@ -390,11 +391,11 @@ class TeacherProfileHalfSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
-        fields = []
+        fields = ["Address"]
 
 class TeacherProfileCompleteSerializer(serializers.ModelSerializer):
     TeacherProfile = TeacherProfileOnlySerializer(many=True)
 
     class Meta:
         model = Teacher
-        fields = ["first_name", "last_name",  "Address", "National_ID", "TeacherProfile"]
+        fields = ["Address", "TeacherProfile"]

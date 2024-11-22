@@ -209,6 +209,12 @@ class UserProfileEditView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         user = User.objects.filter(National_ID=payload['National_ID']).first()#user
+        if request.data["Old_Password"]:
+            if check_password(request.data["Old_Password"], user.password):
+                user.password = make_password(request.data["New_Password"])
+            else:
+                raise AuthenticationFailed("Pass is not correct.")
+
         prof = UserProfile.objects.filter(user=user).first()
         serializer1 = UserProfileHalfSerializer(instance=user, data=request.data)
         serializer2 = UserProfileOnlySerializer(instance=prof, data=request.data)
