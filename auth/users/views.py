@@ -12,7 +12,8 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     ClassSerializer, ClassStudentSerializer, UserProfileCompleteSerializer, UserProfileHalfSerializer, \
     UserProfileOnlySerializer, StudentProfileCompleteSerializer, StudentProfileHalfSerializer, \
     StudentProfileOnlySerializer, TeacherProfileOnlySerializer, TeacherProfileCompleteSerializer, \
-    TeacherProfileHalfSerializer
+    TeacherProfileHalfSerializer, StudentProfileCompleteViewSerializer, UserProfileCompleteViewSerializer, \
+    TeacherProfileCompleteViewSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile
 from django.db.models import F
@@ -193,7 +194,7 @@ class UserProfileView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         user = User.objects.filter(National_ID=payload['National_ID']).first()
-        serializer = UserProfileCompleteSerializer(user)
+        serializer = UserProfileCompleteViewSerializer(user)
         return Response(serializer.data)
 
 class UserProfileEditView(APIView):
@@ -499,7 +500,7 @@ class StudentProfileView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
-        serializer = StudentProfileCompleteSerializer(student)
+        serializer = StudentProfileCompleteViewSerializer(student)
         return Response(serializer.data)
 
 class StudentProfileEditView(APIView):
@@ -548,7 +549,7 @@ class TeacherProfileView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        serializer = TeacherProfileCompleteSerializer(teacher)
+        serializer = TeacherProfileCompleteViewSerializer(teacher)
         return Response(serializer.data)
 
 class TeacherProfileEditView(APIView):

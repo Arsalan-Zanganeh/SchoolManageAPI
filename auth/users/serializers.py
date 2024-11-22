@@ -69,12 +69,27 @@ class UserProfileHalfSerializer(serializers.ModelSerializer):##
         model = User
         fields = ['Phone_Number', 'UserProfile']
 
+    def validate(self, attrs):
+        if not re.match('^[0-9]{11}$', attrs['Phone_Number']):
+            raise serializers.ValidationError(
+                {'Phone_Number': 'Phone number must contain exactly 11 digits.'}
+            )
+
+        return attrs
+
 class UserProfileCompleteSerializer(serializers.ModelSerializer):##
     UserProfile = UserProfileOnlySerializer(many=True)
 
     class Meta:
         model = User
         fields = ['Phone_Number', 'UserProfile']
+
+class UserProfileCompleteViewSerializer(serializers.ModelSerializer):##
+    UserProfile = UserProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", 'Phone_Number', 'UserProfile']
 
 class StudentSerializer(serializers.ModelSerializer):
 
@@ -382,6 +397,13 @@ class StudentProfileCompleteSerializer(serializers.ModelSerializer):
         model = Student
         fields = ["LandLine", "Address", "Grade_Level", "StudentProfile"]
 
+class StudentProfileCompleteViewSerializer(serializers.ModelSerializer):
+    StudentProfile = StudentProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = Student
+        fields = ["first_name", "last_name", "LandLine", "Address", "Grade_Level", "StudentProfile"]
+
 class TeacherProfileOnlySerializer(serializers.ModelSerializer):
     class Meta:
         model = TeacherProfile
@@ -399,3 +421,10 @@ class TeacherProfileCompleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = ["Address", "TeacherProfile"]
+
+class TeacherProfileCompleteViewSerializer(serializers.ModelSerializer):
+    TeacherProfile = TeacherProfileOnlySerializer(many=True)
+
+    class Meta:
+        model = Teacher
+        fields = ["first_name", "last_name", "Address", "TeacherProfile"]
