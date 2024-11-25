@@ -5,7 +5,8 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     SchoolView, LoginSchoolView, LogoutSchoolView, ClassView, AddClassView, EditClassView, DeleteClassView, \
     AddClassStudentView, ClassStudentView, DeleteClassStudentView, UserProfileView, UserProfileEditView, \
     SchoolProfileView, SchoolProfileEditView,StudentProfileView, StudentProfileEditView, TeacherProfileView, \
-    TeacherProfileEditView
+    TeacherProfileEditView, NotificationSchoolView, NotificationAddView, NotificationStudentView, \
+    NotificationUnseenCountStudentView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -33,4 +34,8 @@ urlpatterns = [
     path('student/profile_edit/', StudentProfileEditView.as_view()),
     path('teacher/profile/', TeacherProfileView.as_view()),
     path('teacher/profile_edit/', TeacherProfileEditView.as_view()),
+    path('notify/', NotificationSchoolView.as_view()),
+    path('add_notification/', NotificationAddView.as_view()),
+    path('notifications/', NotificationStudentView.as_view()),
+    path('unseen_notifications/', NotificationUnseenCountStudentView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

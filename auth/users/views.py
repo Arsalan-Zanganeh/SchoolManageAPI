@@ -13,9 +13,10 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     UserProfileOnlySerializer, StudentProfileCompleteSerializer, StudentProfileHalfSerializer, \
     StudentProfileOnlySerializer, TeacherProfileOnlySerializer, TeacherProfileCompleteSerializer, \
     TeacherProfileHalfSerializer, StudentProfileCompleteViewSerializer, UserProfileCompleteViewSerializer, \
-    TeacherProfileCompleteViewSerializer
+    TeacherProfileCompleteViewSerializer, NotificationStudentSerializer, NotificationSchoolSerializer, \
+    NotificationClassSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
-    SchoolProfile, StudentProfile, TeacherProfile
+    SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent
 from django.db.models import F
 import jwt, datetime
 
@@ -634,3 +635,142 @@ class SchoolProfileEditView(APIView):
 
 
         return Response(serializer.data)
+
+
+
+class NotificationSchoolView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('school')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        token = request.COOKIES.get('jwt')#school
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload2 = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        user = User.objects.filter(National_ID=payload2['National_ID']).first()
+        if not user:
+            raise AuthenticationFailed("User not Found!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        notif = NotificationSchool.objects.filter(school=school, archive=False).all()
+        serializer = NotificationSchoolSerializer(notif, many=True)
+        return Response(serializer.data)
+
+class NotificationAddView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('school')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+
+        token = request.COOKIES.get('jwt')#school
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        user = User.objects.filter(National_ID=payload['National_ID']).first()
+        if not user:
+            raise AuthenticationFailed("User not Found!")
+
+        mynotif_sch = NotificationSchool.objects.create(school=school, message=request.data['message'])
+
+        first = {}
+        first['classes'] = Classes.objects.filter(pk=request.data['classes']).first().pk
+        if not first['classes']:
+            raise AuthenticationFailed("No classes found!")
+
+        first['NotificationSchool'] = mynotif_sch.pk
+        if not first['NotificationSchool']:
+            raise AuthenticationFailed("Object NotificationSchool not found!")
+        serializer = NotificationClassSerializer(data=first)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        first = {}
+        first['NotificationSchool'] = mynotif_sch.pk
+        first['seen']=False
+        first['archive']=False
+        first['message']= request.data['message']
+        first['date']=mynotif_sch.date
+        myclasses = ClassStudent.objects.filter(Classes=request.data['classes']).values_list('Student__National_ID', flat=True)
+        students = Student.objects.filter(National_ID__in=myclasses).all()
+        for student in students:
+            first['student'] = student.pk
+            serializer = NotificationStudentSerializer(data=first)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+        resp = Response()
+        resp.data = {
+            'message': 'It was successful'
+        }
+        return resp
+
+class NotificationStudentView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("Student not found!")
+        notif = NotificationStudent.objects.filter(student=student, archive=False).all()
+        for notific in notif:
+            notific.seen=True
+            notific.save()
+        serializer = NotificationStudentSerializer(notif, many=True)
+        return Response(serializer.data)
+
+class NotificationUnseenCountStudentView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("Student not found!")
+        notif = NotificationStudent.objects.filter(student=student, archive=False, seen=False).count()
+        resp = Response()
+        resp.data = {
+            "count": notif
+        }
+        return resp

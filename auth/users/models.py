@@ -121,10 +121,12 @@ class Student(models.Model):
 
     def __str__(self):
         return self.National_ID
+
 class StudentProfile(models.Model):
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='StudentProfile')
+
 class Teacher(models.Model):
 
     first_name = models.CharField(max_length=100)
@@ -139,6 +141,7 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.National_ID
+
 class TeacherProfile(models.Model):
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
@@ -174,3 +177,23 @@ class ClassStudent(models.Model):
 
     class Meta:
         unique_together = ('Classes', 'Student')
+
+class NotificationSchool(models.Model):
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
+    archive = models.BooleanField(default=False)
+
+class NotificationClass(models.Model):
+    classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    NotificationSchool = models.ForeignKey(NotificationSchool, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('classes', 'NotificationSchool')
+
+class NotificationStudent(models.Model):
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    seen = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False)

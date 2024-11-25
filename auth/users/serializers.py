@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
-    StudentProfile, TeacherProfile
+    StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool
+
 import re
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -428,3 +429,18 @@ class TeacherProfileCompleteViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = ["first_name", "last_name", "Address", "TeacherProfile"]
+
+class NotificationSchoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationSchool
+        fields = ['message', 'date', 'school', 'archive']
+
+class NotificationStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationStudent
+        fields = ['date', 'student', 'seen', 'archive', 'message']
+
+class NotificationClassSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationClass
+        fields = ['classes', 'NotificationSchool']
