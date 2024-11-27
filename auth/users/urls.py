@@ -1,12 +1,14 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
 from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView, AddTeacherView, AddSchoolView, \
     SchoolView, LoginSchoolView, LogoutSchoolView, ClassView, AddClassView, EditClassView, DeleteClassView, \
     AddClassStudentView, ClassStudentView, DeleteClassStudentView, UserProfileView, UserProfileEditView, \
     SchoolProfileView, SchoolProfileEditView,StudentProfileView, StudentProfileEditView, TeacherProfileView, \
     TeacherProfileEditView, NotificationSchoolView, NotificationAddView, NotificationStudentView, \
-    NotificationUnseenCountStudentView
+    NotificationUnseenCountStudentView, PasswordTokenCheckAPI, RequestPasswordResetEmailView, \
+    SetNewPasswordAPIView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -38,4 +40,11 @@ urlpatterns = [
     path('add_notification/', NotificationAddView.as_view()),
     path('notifications/', NotificationStudentView.as_view()),
     path('unseen_notifications/', NotificationUnseenCountStudentView.as_view()),
+    # path('reset_password/' , auth_views.PasswordResetView.as_view(), name='reset_password'),
+    # path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    # path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    # path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('password-reset/<uibd64>/<token>/', PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
+    path('request-reset-email/',RequestPasswordResetEmailView.as_view(), name='request-reset-email'),
+    path('password-reset-complete/', SetNewPasswordAPIView.as_view(), name='password-reset-complete'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

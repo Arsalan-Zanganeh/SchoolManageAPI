@@ -1,10 +1,21 @@
+from audioop import reverse
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.base import kwarg_re
+from django.template.context_processors import request
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
     StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool
 
 import re
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import smart_str,force_str,DjangoUnicodeDecodeError,smart_bytes
+from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
+from .utils import Util
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -440,7 +451,41 @@ class NotificationStudentSerializer(serializers.ModelSerializer):
         model = NotificationStudent
         fields = ['date', 'student', 'seen', 'archive', 'message']
 
-class NotificationClassSerializer(serializers.ModelSerializer):
+class NotificationClassSerializer(serializers.Serializer):
     class Meta:
         model = NotificationClass
         fields = ['classes', 'NotificationSchool']
+
+class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(min_length=2)
+
+    class Meta:
+        fields = ['email']
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(min_length=6,max_length=68,write_only=True)
+    token = serializers.CharField(min_length=1,write_only=True)
+    uibd64 = serializers.CharField(min_length=1,write_only=True)
+
+    class Meta:
+        fields = ['password', 'token', 'uibd64']
+
+    def validate(self, attrs):
+        try:
+            password = attrs.get('password')
+            token = attrs.get('token')
+            uibd64 = attrs.get('uibd64')
+
+            id=force_str(urlsafe_base64_decode(uibd64))
+            user=User.objects.get(id=id)
+
+            if not PasswordResetTokenGenerator().check_token(user,token):
+                raise AuthenticationFailed('The reset link is invalid')
+
+            user.set_password(password)
+            user.save()
+            return user
+
+        except Exception as e:
+            raise AuthenticationFailed('The reset link is invalid')
+        return super().is_valid(attrs)
