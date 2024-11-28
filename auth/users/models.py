@@ -1,3 +1,5 @@
+from time import timezone
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
@@ -197,3 +199,56 @@ class NotificationStudent(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     seen = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
+
+class QuizTeacher(models.Model):
+    OnMode = [
+        ('created', 'Created'),
+        ('started', 'Started'),
+        ('finished', 'Finished')
+    ]
+    Title = models.CharField(max_length=100)
+    Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    OpenTime = models.DateTimeField()
+    CloseTime = models.DateTimeField()
+    DurationHour = models.IntegerField()
+    DurationMinute = models.IntegerField()
+    MaxParticipation = models.IntegerField(default=1)
+    ShowDegreeAfterExam = models.BooleanField(default=False)
+    Mode = models.CharField(max_length=20, choices=OnMode, blank=False, null=False)
+
+class QuizQuestion(models.Model):
+    QuizTeacher = models.ForeignKey(QuizTeacher, on_delete=models.CASCADE)
+    Question = models.TextField()
+    Option1 = models.CharField()
+    Option2 = models.CharField()
+    Option3 = models.CharField()
+    Option4 = models.CharField()
+    Answer = models.IntegerField()
+    Explanation = models.TextField()
+
+class QuizQuestionStudent(models.Model):
+    QuizQuestion = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    OnParticipation = models.IntegerField()
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('QuizQuestion', 'OnParticipation', 'Student')
+
+class QuizStudent(models.Model):
+    Title = models.CharField(max_length=100)
+    Topic = models.CharField(max_length=30)
+    ParticipationCount = models.IntegerField(default=0)
+    StudentStartedQuiz = models.BooleanField(default=False)
+    StudentStartQuizTime = models.DateTimeField(auto_now=True)
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    QuizTeacher = models.ForeignKey(QuizTeacher, on_delete=models.CASCADE)
+
+class QuizStudentRecord(models.Model):
+    QuizStudent = models.ForeignKey(QuizStudent, on_delete=models.CASCADE)
+    Degree = models.FloatField()
+    FinishTime = models.DateTimeField()
+    OnParticipation = models.IntegerField()
+
+    class Meta:
+        unique_together = ('QuizStudent', 'OnParticipation')

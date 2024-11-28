@@ -14,9 +14,10 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     StudentProfileOnlySerializer, TeacherProfileOnlySerializer, TeacherProfileCompleteSerializer, \
     TeacherProfileHalfSerializer, StudentProfileCompleteViewSerializer, UserProfileCompleteViewSerializer, \
     TeacherProfileCompleteViewSerializer, NotificationStudentSerializer, NotificationSchoolSerializer, \
-    NotificationClassSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer
+    NotificationClassSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
+    TeacherQuizSerializer, QuizStudentSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
-    SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent
+    SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, QuizStudent
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -822,3 +823,96 @@ class SetNewPasswordAPIView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'success':True,'message':'Your password has been set'})
+
+class CreateNewQuizView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        myclass = Classes.objects.filter(id=request.data['Classes']).first()
+        myquiz = QuizTeacher.objects.create(Title=request.data['Title'], Teacher=teacher, Classes=myclass,
+                                   OpenTime=datetime.datetime.now() + datetime.timedelta(days=1),
+                                   CloseTime=datetime.datetime.now() + datetime.timedelta(days=1),
+                                   DurationHour=0, DurationMinute=0, MaxParticipation=request.data['MaxParticipation'],
+                                   ShowDegreeAfterExam=request.data['ShowDegreeAfterExam'],
+                                   Mode='created')
+        myquiz.save()
+        serializer = CreateNewQuizSerializer(myquiz)
+        return Response(serializer.data)
+
+class TeacherQuizesView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        quizes = QuizTeacher.objects.filter(Teacher=teacher).all()
+        mytime = datetime.datetime.now()
+        for quiz in quizes:
+            if quiz.Mode == 'started' and mytime < quiz.CloseTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute):
+                quiz.Mode = 'finished'
+                quiz.save()
+        serializer = TeacherQuizSerializer(quizes, many=True)
+        return Response(serializer.data)
+
+class StartQuizView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        quiz = QuizTeacher.objects.filter(Teacher=teacher,Mode='created',id=request.data['id']).first()
+        if quiz is not None:
+            quiz.OpenTime=request.data['OpenTime']
+            quiz.CloseTime=request.data['CloseTime']
+            quiz.DurationHour=request.data['DurationHour']
+            quiz.DurationMinute=request.data['DurationMinute']
+            quiz.Mode='started'
+            quiz.save()
+            myclass = quiz.Classes
+            students = ClassStudent.objects.filter(Classes=myclass).all()
+            for student in students:
+                q = QuizStudent.objects.create(Title=quiz.Title, Topic=myclass.Topic, Student=student.Student, QuizTeacher=quiz)
+                q.save()
+            return Response({'message':'Your quiz is visible to Students now'})
+        else:
+            return Response({'Error':'There is no such a quiz'})
+
+class StudentQuizView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        quizes = QuizStudent.objects.filter(Student=student).all()
+        serializer = QuizStudentSerializer(quizes, many=True)
+        return Response(serializer.data)

@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
-    StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool
+    StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool, QuizTeacher, QuizStudent
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -489,3 +489,18 @@ class SetNewPasswordSerializer(serializers.Serializer):
         except Exception as e:
             raise AuthenticationFailed('The reset link is invalid')
         return super().is_valid(attrs)
+
+class CreateNewQuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizTeacher
+        fields = ['Title', 'Classes', 'MaxParticipation', 'ShowDegreeAfterExam', 'Mode']
+
+class TeacherQuizSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizTeacher
+        fields = '__all__'
+
+class QuizStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizStudent
+        fields = '__all__'

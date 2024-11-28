@@ -5,10 +5,10 @@ from django.contrib.auth import views as auth_views
 from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView, AddTeacherView, AddSchoolView, \
     SchoolView, LoginSchoolView, LogoutSchoolView, ClassView, AddClassView, EditClassView, DeleteClassView, \
     AddClassStudentView, ClassStudentView, DeleteClassStudentView, UserProfileView, UserProfileEditView, \
-    SchoolProfileView, SchoolProfileEditView,StudentProfileView, StudentProfileEditView, TeacherProfileView, \
+    SchoolProfileView, SchoolProfileEditView, StudentProfileView, StudentProfileEditView, TeacherProfileView, \
     TeacherProfileEditView, NotificationSchoolView, NotificationAddView, NotificationStudentView, \
     NotificationUnseenCountStudentView, PasswordTokenCheckAPI, RequestPasswordResetEmailView, \
-    SetNewPasswordAPIView
+    SetNewPasswordAPIView, CreateNewQuizView, TeacherQuizesView, StartQuizView, StudentQuizView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -47,4 +47,8 @@ urlpatterns = [
     path('password-reset/<uibd64>/<token>/', PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
     path('request-reset-email/',RequestPasswordResetEmailView.as_view(), name='request-reset-email'),
     path('password-reset-complete/', SetNewPasswordAPIView.as_view(), name='password-reset-complete'),
+    path('create_quiz/', CreateNewQuizView.as_view()),
+    path('teacher_quizzes/', TeacherQuizesView.as_view()),
+    path('start_quiz/',StartQuizView.as_view()),
+    path('student_quizzes/', StudentQuizView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
