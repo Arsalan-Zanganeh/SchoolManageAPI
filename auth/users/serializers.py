@@ -25,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'National_ID', 'Phone_Number', 'password', 'password2',
-                  'Email']
+                  'email']
 
     def validate(self, attrs):
         otherStudent = Student.objects.filter(National_ID=attrs['National_ID']).first()
@@ -66,7 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
             username=validated_data['National_ID'],
             National_ID=validated_data['National_ID'],
             Phone_Number=validated_data['Phone_Number'],
-            Email=validated_data['Email']
+            email=validated_data['email']
         )
         user.set_password(validated_data['password'])
         user.save()
