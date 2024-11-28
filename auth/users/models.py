@@ -35,6 +35,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=100)
     Phone_Number = models.CharField(max_length=11, unique=True)
     National_ID = models.CharField(max_length=10, unique=True)
+    Email = models.EmailField()
 
 
     USERNAME_FIELD = 'National_ID'
@@ -116,6 +117,13 @@ class Student(models.Model):
     Grade_Level = models.CharField(max_length=20, choices=GradeLevel, blank=False)
     National_ID = models.CharField(max_length=10, unique=True)
     password = models.CharField(max_length=200)
+    Email = models.EmailField()
+    is_active = models.BooleanField(default=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+
+    def get_email_field_name(self):
+        return 'Email'
+
 
 
     USERNAME_FIELD = 'National_ID'
@@ -137,6 +145,13 @@ class Teacher(models.Model):
     Address = models.CharField(max_length=100)
     National_ID = models.CharField(max_length=10, unique=True)
     password = models.CharField(max_length=200)
+    Email = models.EmailField()
+    is_active = models.BooleanField(default=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+
+
+    def get_email_field_name(self):
+        return 'Email'
 
     USERNAME_FIELD = 'National_ID'
     REQUIRED_FIELDS = ['password']

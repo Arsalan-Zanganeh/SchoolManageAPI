@@ -8,7 +8,9 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     SchoolProfileView, SchoolProfileEditView, StudentProfileView, StudentProfileEditView, TeacherProfileView, \
     TeacherProfileEditView, NotificationSchoolView, NotificationAddView, NotificationStudentView, \
     NotificationUnseenCountStudentView, PasswordTokenCheckAPI, RequestPasswordResetEmailView, \
-    SetNewPasswordAPIView, CreateNewQuizView, TeacherQuizesView, StartQuizView, StudentQuizView
+    SetNewPasswordAPIView, CreateNewQuizView, TeacherQuizesView, StartQuizView, StudentQuizView, \
+    StudentRequestPasswordResetEmailView, StudentSetNewPasswordAPIView, StudentPasswordTokenCheckAPI, \
+    TeacherRequestPasswordResetEmailView, TeacherSetNewPasswordAPIView, TeacherPasswordTokenCheckAPI
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -51,4 +53,10 @@ urlpatterns = [
     path('teacher_quizzes/', TeacherQuizesView.as_view()),
     path('start_quiz/',StartQuizView.as_view()),
     path('student_quizzes/', StudentQuizView.as_view()),
+    path('student-reset-email/', StudentRequestPasswordResetEmailView.as_view()),
+    path('student-reset-complete/', StudentSetNewPasswordAPIView.as_view()),
+    path('student-password-reset/<uibd64>/<token>/', StudentPasswordTokenCheckAPI.as_view(),name='student-password-reset-confirm'),
+    path('teacher-reset-email/', TeacherRequestPasswordResetEmailView.as_view()),
+    path('teacher-reset-complete/', TeacherSetNewPasswordAPIView.as_view()),
+    path('teacher-password-reset/<uibd64>/<token>/', TeacherPasswordTokenCheckAPI.as_view(),name='teacher-password-reset-confirm'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

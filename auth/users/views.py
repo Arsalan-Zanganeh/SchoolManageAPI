@@ -15,7 +15,8 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     TeacherProfileHalfSerializer, StudentProfileCompleteViewSerializer, UserProfileCompleteViewSerializer, \
     TeacherProfileCompleteViewSerializer, NotificationStudentSerializer, NotificationSchoolSerializer, \
     NotificationClassSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
-    TeacherQuizSerializer, QuizStudentSerializer
+    TeacherQuizSerializer, QuizStudentSerializer, StudentSetNewPasswordSerializer, \
+    TeacherSetNewPasswordSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, QuizStudent
 from django.db.models import F
@@ -916,3 +917,86 @@ class StudentQuizView(APIView):
         quizes = QuizStudent.objects.filter(Student=student).all()
         serializer = QuizStudentSerializer(quizes, many=True)
         return Response(serializer.data)
+
+class StudentRequestPasswordResetEmailView(APIView):
+    serializer_class = ResetPasswordEmailRequestSerializer
+
+    def post(self, request):
+        data = {'request': request, 'data': request.data}
+        serializer = self.serializer_class(data=request.data)
+        Email = request.data['Email']
+        nid = request.data['National_ID']
+        if Student.objects.filter(Email=Email,National_ID=nid).exists():
+            student = Student.objects.get(Email=Email)
+            uibd64 = urlsafe_base64_encode(smart_bytes(student.id))
+            token = PasswordResetTokenGenerator().make_token(student)
+            current_site = get_current_site(request=request).domain
+            relativeLink = reverse('student-password-reset-confirm', kwargs={'uibd64': uibd64, 'token': token})
+            absurl = 'http://' + current_site + relativeLink
+            email_body = "doob doob doob\n" + absurl
+            data = {'email_body': email_body, 'to_email': student.Email, 'email_subject': 'Reset your password'}
+            Util.send_email(data)
+            return Response({'success':'We have sent you a link to reset your password'})
+        else:
+            return Response({'fail': 'There is no such a student'})
+
+
+class StudentSetNewPasswordAPIView(APIView):
+    serializer_class = StudentSetNewPasswordSerializer
+
+    def patch(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'success':True,'message':'Your password has been set'})
+class StudentPasswordTokenCheckAPI(APIView):
+    def get(self, request, uibd64, token):
+        try:
+            id=smart_str(urlsafe_base64_decode(uibd64))
+            student=Student.objects.get(id=id)
+            if not PasswordResetTokenGenerator().check_token(student, token):
+                return Response({'error':'Invalid request, please request a new one'})
+            return Response({'success': True, 'message': 'Credentials Valid', 'uibd64': uibd64, 'token': token})
+        except DjangoUnicodeDecodeError as e:
+            return Response({'error': 'Invalid request, please request a new one'})
+
+####
+class TeacherRequestPasswordResetEmailView(APIView):
+    serializer_class = ResetPasswordEmailRequestSerializer
+
+    def post(self, request):
+        data = {'request': request, 'data': request.data}
+        serializer = self.serializer_class(data=request.data)
+        Email = request.data['Email']
+        nid = request.data['National_ID']
+        if Teacher.objects.filter(Email=Email,National_ID=nid).exists():
+            teacher = Teacher.objects.get(Email=Email)
+            uibd64 = urlsafe_base64_encode(smart_bytes(teacher.id))
+            token = PasswordResetTokenGenerator().make_token(teacher)
+            current_site = get_current_site(request=request).domain
+            relativeLink = reverse('teacher-password-reset-confirm', kwargs={'uibd64': uibd64, 'token': token})
+            absurl = 'http://' + current_site + relativeLink
+            email_body = "doob doob doob\n" + absurl
+            data = {'email_body': email_body, 'to_email': teacher.Email, 'email_subject': 'Reset your password'}
+            Util.send_email(data)
+            return Response({'success':'We have sent you a link to reset your password'})
+        else:
+            return Response({'fail': 'There is no such a student'})
+
+
+class TeacherSetNewPasswordAPIView(APIView):
+    serializer_class = TeacherSetNewPasswordSerializer
+
+    def patch(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({'success':True,'message':'Your password has been set'})
+class TeacherPasswordTokenCheckAPI(APIView):
+    def get(self, request, uibd64, token):
+        try:
+            id=smart_str(urlsafe_base64_decode(uibd64))
+            teacher=Teacher.objects.get(id=id)
+            if not PasswordResetTokenGenerator().check_token(teacher, token):
+                return Response({'error':'Invalid request, please request a new one'})
+            return Response({'success': True, 'message': 'Credentials Valid', 'uibd64': uibd64, 'token': token})
+        except DjangoUnicodeDecodeError as e:
+            return Response({'error': 'Invalid request, please request a new one'})

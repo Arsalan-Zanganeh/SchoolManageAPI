@@ -15,6 +15,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str,force_str,DjangoUnicodeDecodeError,smart_bytes
 from django.utils.http import urlsafe_base64_decode,urlsafe_base64_encode
+from django.contrib.auth.hashers import check_password, make_password
 from .utils import Util
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,7 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'National_ID', 'Phone_Number', 'password', 'password2']
+        fields = ['id', 'first_name', 'last_name', 'National_ID', 'Phone_Number', 'password', 'password2',
+                  'Email']
 
     def validate(self, attrs):
         otherStudent = Student.objects.filter(National_ID=attrs['National_ID']).first()
@@ -63,7 +65,8 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data['last_name'],
             username=validated_data['National_ID'],
             National_ID=validated_data['National_ID'],
-            Phone_Number=validated_data['Phone_Number']
+            Phone_Number=validated_data['Phone_Number'],
+            Email=validated_data['Email']
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -112,7 +115,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['id', 'first_name', 'last_name', 'National_ID', 'Father_Phone_Number',
                   'Father_first_name', 'Father_last_name', 'Grade_Level', 'password',
-                  'password2', 'Address', 'LandLine', 'School']
+                  'password2', 'Address', 'LandLine', 'School','Email']
 
     def validate(self, attrs):
         otherPrincipal = User.objects.filter(National_ID=attrs['National_ID']).first()
@@ -183,6 +186,7 @@ class StudentSerializer(serializers.ModelSerializer):
             Address=validated_data['Address'],
             Grade_Level=validated_data['Grade_Level'],
             password=make_password(validated_data['password']),
+            Email=validated_data['Email']
         )
         student.save()
 
@@ -216,7 +220,7 @@ class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = ['id', 'first_name', 'last_name', 'National_ID', 'Phone_Number',
-                  'password', 'password2', 'Address']
+                  'password', 'password2', 'Address','Email']
 
     def validate(self, attrs):
         otherPrincipal = User.objects.filter(National_ID=attrs['National_ID']).first()
@@ -262,6 +266,7 @@ class TeacherSerializer(serializers.ModelSerializer):
             Phone_Number=validated_data['Phone_Number'],
             Address=validated_data['Address'],
             password=make_password(validated_data['password']),
+            Email=validated_data['Email'],
         )
         teacher.save()
 
@@ -471,23 +476,22 @@ class SetNewPasswordSerializer(serializers.Serializer):
         fields = ['password', 'token', 'uibd64']
 
     def validate(self, attrs):
-        try:
-            password = attrs.get('password')
-            token = attrs.get('token')
-            uibd64 = attrs.get('uibd64')
 
-            id=force_str(urlsafe_base64_decode(uibd64))
-            user=User.objects.get(id=id)
+        password = attrs.get('password')
+        token = attrs.get('token')
+        uibd64 = attrs.get('uibd64')
 
-            if not PasswordResetTokenGenerator().check_token(user,token):
-                raise AuthenticationFailed('The reset link is invalid')
+        id=force_str(urlsafe_base64_decode(uibd64))
+        user=User.objects.get(id=id)
 
-            user.set_password(password)
-            user.save()
-            return user
-
-        except Exception as e:
+        if not PasswordResetTokenGenerator().check_token(user,token):
             raise AuthenticationFailed('The reset link is invalid')
+
+        user.set_password(password)
+        user.save()
+        return user
+
+
         return super().is_valid(attrs)
 
 class CreateNewQuizSerializer(serializers.ModelSerializer):
@@ -504,3 +508,65 @@ class QuizStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizStudent
         fields = '__all__'
+
+
+
+class StudentSetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(min_length=6,max_length=68,write_only=True)
+    token = serializers.CharField(min_length=1,write_only=True)
+    uibd64 = serializers.CharField(min_length=1,write_only=True)
+
+    class Meta:
+        fields = ['password', 'token', 'uibd64']
+
+    def validate(self, attrs):
+
+        password = attrs.get('password')
+        token = attrs.get('token')
+        uibd64 = attrs.get('uibd64')
+
+        id=force_str(urlsafe_base64_decode(uibd64))
+        student=Student.objects.get(id=id)
+
+
+
+        if not PasswordResetTokenGenerator().check_token(student,token):
+            raise AuthenticationFailed('The reset link is invalid')
+
+        student.password = make_password(password)
+
+        student.save()
+        return student
+
+
+        return super().is_valid(attrs)
+
+class TeacherSetNewPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(min_length=6,max_length=68,write_only=True)
+    token = serializers.CharField(min_length=1,write_only=True)
+    uibd64 = serializers.CharField(min_length=1,write_only=True)
+
+    class Meta:
+        fields = ['password', 'token', 'uibd64']
+
+    def validate(self, attrs):
+
+        password = attrs.get('password')
+        token = attrs.get('token')
+        uibd64 = attrs.get('uibd64')
+
+        id=force_str(urlsafe_base64_decode(uibd64))
+        teacher=Teacher.objects.get(id=id)
+
+
+
+        if not PasswordResetTokenGenerator().check_token(teacher,token):
+            raise AuthenticationFailed('The reset link is invalid')
+
+        teacher.password = make_password(password)
+
+        teacher.save()
+        return teacher
+
+
+        return super().is_valid(attrs)
