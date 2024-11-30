@@ -7,7 +7,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
-    StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool, QuizTeacher, QuizStudent
+    StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool, QuizTeacher, \
+    QuizStudent, QuizQuestion, QuizStudentRecord
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -509,7 +510,20 @@ class QuizStudentSerializer(serializers.ModelSerializer):
         model = QuizStudent
         fields = '__all__'
 
+class AddQuizQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestion
+        fields = '__all__'
 
+class StudentQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestion
+        fields = ['id', 'Question', 'Option1', 'Option2', 'Option3', 'Option4']
+
+class StudentQuizRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizStudentRecord
+        fields = '__all__'
 
 class StudentSetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6,max_length=68,write_only=True)

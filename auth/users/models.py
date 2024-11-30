@@ -245,19 +245,29 @@ class QuizQuestion(models.Model):
 class QuizQuestionStudent(models.Model):
     QuizQuestion = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
     OnParticipation = models.IntegerField()
+    StudentAnswer = models.IntegerField()
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('QuizQuestion', 'OnParticipation', 'Student')
 
 class QuizStudent(models.Model):
+    OnMode = [
+        ('not_started', 'Not_Started'),
+        ('started', 'Started'),
+        ('continue', 'Continue'),
+        ('finished', 'Finished'),
+    ]
     Title = models.CharField(max_length=100)
     Topic = models.CharField(max_length=30)
     ParticipationCount = models.IntegerField(default=0)
     StudentStartedQuiz = models.BooleanField(default=False)
     StudentStartQuizTime = models.DateTimeField(auto_now=True)
+    OpenTime = models.DateTimeField()
+    CloseTime = models.DateTimeField()
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     QuizTeacher = models.ForeignKey(QuizTeacher, on_delete=models.CASCADE)
+    Mode = models.CharField(max_length=20, choices=OnMode, blank=False, null=False)
 
 class QuizStudentRecord(models.Model):
     QuizStudent = models.ForeignKey(QuizStudent, on_delete=models.CASCADE)

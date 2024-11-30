@@ -10,7 +10,10 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     NotificationUnseenCountStudentView, PasswordTokenCheckAPI, RequestPasswordResetEmailView, \
     SetNewPasswordAPIView, CreateNewQuizView, TeacherQuizesView, StartQuizView, StudentQuizView, \
     StudentRequestPasswordResetEmailView, StudentSetNewPasswordAPIView, StudentPasswordTokenCheckAPI, \
-    TeacherRequestPasswordResetEmailView, TeacherSetNewPasswordAPIView, TeacherPasswordTokenCheckAPI
+    TeacherRequestPasswordResetEmailView, TeacherSetNewPasswordAPIView, TeacherPasswordTokenCheckAPI, \
+    QuizQuestionsTeacherView, AddQuizQuestionView, DeleteQuizQuestionView, EditQuizQuestionView, \
+    StudentAnswerQuestion, StudentShowQuestions, StudentStartExam, TeacherWatchRecords, \
+    StudentfinishExam, RecordToStudent, StudentShowRecords, StudentShowAnswers
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -42,10 +45,6 @@ urlpatterns = [
     path('add_notification/', NotificationAddView.as_view()),
     path('notifications/', NotificationStudentView.as_view()),
     path('unseen_notifications/', NotificationUnseenCountStudentView.as_view()),
-    # path('reset_password/' , auth_views.PasswordResetView.as_view(), name='reset_password'),
-    # path('reset_password_sent/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    # path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    # path('reset_password_complete/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('password-reset/<uibd64>/<token>/', PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
     path('request-reset-email/',RequestPasswordResetEmailView.as_view(), name='request-reset-email'),
     path('password-reset-complete/', SetNewPasswordAPIView.as_view(), name='password-reset-complete'),
@@ -59,4 +58,16 @@ urlpatterns = [
     path('teacher-reset-email/', TeacherRequestPasswordResetEmailView.as_view()),
     path('teacher-reset-complete/', TeacherSetNewPasswordAPIView.as_view()),
     path('teacher-password-reset/<uibd64>/<token>/', TeacherPasswordTokenCheckAPI.as_view(),name='teacher-password-reset-confirm'),
+    path('teacher-quiz-questions/', QuizQuestionsTeacherView.as_view()),
+    path('teacher-add-quiz-question/', AddQuizQuestionView.as_view()),
+    path('teacher-edit-quiz-question/', EditQuizQuestionView.as_view()),
+    path('teacher-delete-quiz-question/', DeleteQuizQuestionView.as_view()),
+    path('student-answer-question/', StudentAnswerQuestion.as_view()),
+    path('student-show-questions/', StudentShowQuestions.as_view()),
+    path('student-start-exam/', StudentStartExam.as_view()),
+    path('student-finish-exam/', StudentfinishExam.as_view()),
+    path('teacher-watch-records/', TeacherWatchRecords.as_view()),
+    path('teacher-watch-record/', RecordToStudent.as_view()),
+    path('student-show-records/', StudentShowRecords.as_view()),
+    path('student-show-answers/', StudentShowAnswers.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
