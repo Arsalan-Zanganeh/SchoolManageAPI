@@ -16,10 +16,11 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     TeacherProfileCompleteViewSerializer, NotificationStudentSerializer, NotificationSchoolSerializer, \
     NotificationClassSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
     TeacherQuizSerializer, QuizStudentSerializer, StudentSetNewPasswordSerializer, \
-    TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer
+    TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
+    HallandAPISerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, QuizStudent, \
-    QuizQuestion, QuizQuestionStudent, QuizStudentRecord
+    QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -1500,3 +1501,47 @@ class StudentShowAnswers(APIView):
             serializer = AddQuizQuestionSerializer(questions, many=True)
             return Response(serializer.data)
         return Response({'message':'it is not valid to show you the answers'})
+
+class HallandRecordsView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        myhall = HallandAPI.objects.filter(Student=student).all()
+        serializer = HallandAPISerializer(myhall, many=True)
+        return Response(serializer.data)
+
+class HallandSubmitRecord(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        num = HallandAPI.objects.filter(Student=student).count()
+        num = num+1
+        myrecord = HallandAPI.objects.create(Student=student, OnParticipation=num, Realistic=request.data['Realistic'],
+                                             Investigative=request.data['Investigative'], Artistic=request.data['Artistic'],
+                                             Social=request.data['Social'], Enterprising=request.data['Enterprising'],
+                                             Conventional=request.data['Conventional'])
+        myrecord.save()
+        serializer = HallandAPISerializer(myrecord)
+        return Response(serializer.data)

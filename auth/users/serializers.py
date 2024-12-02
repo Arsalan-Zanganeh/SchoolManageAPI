@@ -8,7 +8,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
     StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool, QuizTeacher, \
-    QuizStudent, QuizQuestion, QuizStudentRecord
+    QuizStudent, QuizQuestion, QuizStudentRecord, HallandAPI
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -584,3 +584,8 @@ class TeacherSetNewPasswordSerializer(serializers.Serializer):
 
 
         return super().is_valid(attrs)
+
+class HallandAPISerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HallandAPI
+        fields = '__all__'

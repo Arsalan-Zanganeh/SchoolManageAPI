@@ -1,7 +1,10 @@
+import datetime
 from time import timezone
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.forms import BooleanField
+
 
 class MyUserManager(BaseUserManager):
     def create_user(self, National_ID, first_name, last_name, username, Phone_Number, email, password=None):
@@ -277,3 +280,14 @@ class QuizStudentRecord(models.Model):
 
     class Meta:
         unique_together = ('QuizStudent', 'OnParticipation')
+
+class HallandAPI(models.Model):
+    OnParticipation = models.IntegerField()
+    Realistic = models.BooleanField()
+    Investigative = models.BooleanField()
+    Artistic = models.BooleanField()
+    Social = models.BooleanField()
+    Enterprising = models.BooleanField()
+    Conventional = models.BooleanField()
+    Time = models.DateTimeField(default=datetime.datetime.now)
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)

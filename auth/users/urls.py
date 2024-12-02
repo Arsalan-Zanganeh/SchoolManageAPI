@@ -13,7 +13,8 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     TeacherRequestPasswordResetEmailView, TeacherSetNewPasswordAPIView, TeacherPasswordTokenCheckAPI, \
     QuizQuestionsTeacherView, AddQuizQuestionView, DeleteQuizQuestionView, EditQuizQuestionView, \
     StudentAnswerQuestion, StudentShowQuestions, StudentStartExam, TeacherWatchRecords, \
-    StudentfinishExam, RecordToStudent, StudentShowRecords, StudentShowAnswers
+    StudentfinishExam, RecordToStudent, StudentShowRecords, StudentShowAnswers, HallandSubmitRecord, \
+    HallandRecordsView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -70,4 +71,6 @@ urlpatterns = [
     path('teacher-watch-record/', RecordToStudent.as_view()),
     path('student-show-records/', StudentShowRecords.as_view()),
     path('student-show-answers/', StudentShowAnswers.as_view()),
+    path('student-submit-halland/', HallandSubmitRecord.as_view()),
+    path('student-watch-halland-records/', HallandRecordsView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
