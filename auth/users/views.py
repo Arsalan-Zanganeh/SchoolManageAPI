@@ -465,6 +465,33 @@ class ClassStudentView(APIView):
         serializer = StudentSerializer(students_data, many=True)
         return Response(serializer.data)
 
+class TeacherClassStudentView(APIView):
+    def post(self, request):
+
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+
+        myclass = Classes.objects.filter(Teacher=teacher, pk=request.data.get('id')).first()
+        if not myclass:
+            return Response({"detail": "Class not found"}, status=404)
+
+        # Fetch students related to the class
+        students = ClassStudent.objects.filter(Classes=myclass).values_list('Student__National_ID', flat=True)
+        if not students.exists():
+            return Response([], status=200)  # Return an empty list if no students are found.
+
+        students_data = Student.objects.filter(National_ID__in=students)
+        serializer = StudentSerializer(students_data, many=True)
+        return Response(serializer.data)
 
 class DeleteClassStudentView(APIView):
     def post(self, request):

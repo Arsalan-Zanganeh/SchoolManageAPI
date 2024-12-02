@@ -14,7 +14,7 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     QuizQuestionsTeacherView, AddQuizQuestionView, DeleteQuizQuestionView, EditQuizQuestionView, \
     StudentAnswerQuestion, StudentShowQuestions, StudentStartExam, TeacherWatchRecords, \
     StudentfinishExam, RecordToStudent, StudentShowRecords, StudentShowAnswers, HallandSubmitRecord, \
-    HallandRecordsView
+    HallandRecordsView, TeacherClassStudentView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -73,4 +73,5 @@ urlpatterns = [
     path('student-show-answers/', StudentShowAnswers.as_view()),
     path('student-submit-halland/', HallandSubmitRecord.as_view()),
     path('student-watch-halland-records/', HallandRecordsView.as_view()),
+    path('teacher-class-students/', TeacherClassStudentView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
