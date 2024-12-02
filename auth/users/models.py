@@ -204,13 +204,6 @@ class NotificationSchool(models.Model):
     school = models.ForeignKey(School, on_delete=models.CASCADE)
     archive = models.BooleanField(default=False)
 
-class NotificationClass(models.Model):
-    classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
-    NotificationSchool = models.ForeignKey(NotificationSchool, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ('classes', 'NotificationSchool')
-
 class NotificationStudent(models.Model):
     message = models.TextField()
     date = models.DateTimeField(auto_now_add=True)

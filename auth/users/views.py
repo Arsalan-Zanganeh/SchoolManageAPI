@@ -14,7 +14,7 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     StudentProfileOnlySerializer, TeacherProfileOnlySerializer, TeacherProfileCompleteSerializer, \
     TeacherProfileHalfSerializer, StudentProfileCompleteViewSerializer, UserProfileCompleteViewSerializer, \
     TeacherProfileCompleteViewSerializer, NotificationStudentSerializer, NotificationSchoolSerializer, \
-    NotificationClassSerializer, ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
+    ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
     TeacherQuizSerializer, QuizStudentSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
     HallandAPISerializer
@@ -710,17 +710,17 @@ class NotificationAddView(APIView):
         mynotif_sch = NotificationSchool.objects.create(school=school, message=request.data['message'])
         mynotif_sch.save()
 
-        first = {}
-        first['classes'] = Classes.objects.filter(pk=request.data['classes']).first().pk
-        if not first['classes']:
-            raise AuthenticationFailed("No classes found!")
-
-        first['NotificationSchool'] = mynotif_sch.pk
-        if not first['NotificationSchool']:
-            raise AuthenticationFailed("Object NotificationSchool not found!")
-        serializer = NotificationClassSerializer(data=first)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        # first = {}
+        # first['classes'] = Classes.objects.filter(pk=request.data['classes']).first().pk
+        # if not first['classes']:
+        #     raise AuthenticationFailed("No classes found!")
+        #
+        # first['NotificationSchool'] = mynotif_sch.pk
+        # if not first['NotificationSchool']:
+        #     raise AuthenticationFailed("Object NotificationSchool not found!")
+        # serializer = NotificationClassSerializer(data=first)
+        # serializer.is_valid(raise_exception=True)
+        # serializer.save()
 
         first = {}
         first['NotificationSchool'] = mynotif_sch.pk
@@ -728,8 +728,7 @@ class NotificationAddView(APIView):
         first['archive']=False
         first['message']= request.data['message']
         first['date']=mynotif_sch.date
-        myclasses = ClassStudent.objects.filter(Classes=request.data['classes']).values_list('Student__National_ID', flat=True)
-        students = Student.objects.filter(National_ID__in=myclasses).all()
+        students = Student.objects.filter(School=school).all()
         for student in students:
             first['student'] = student.pk
             serializer = NotificationStudentSerializer(data=first)

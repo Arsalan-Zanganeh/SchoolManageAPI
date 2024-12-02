@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
-    StudentProfile, TeacherProfile, NotificationStudent, NotificationClass, NotificationSchool, QuizTeacher, \
+    StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
     QuizStudent, QuizQuestion, QuizStudentRecord, HallandAPI
 
 import re
@@ -456,11 +456,6 @@ class NotificationStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationStudent
         fields = ['date', 'student', 'seen', 'archive', 'message']
-
-class NotificationClassSerializer(serializers.Serializer):
-    class Meta:
-        model = NotificationClass
-        fields = ['classes', 'NotificationSchool']
 
 class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(min_length=2)
