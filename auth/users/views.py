@@ -17,10 +17,10 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
     TeacherQuizSerializer, QuizStudentSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
-    HallandAPISerializer
+    HallandAPISerializer, HomeWorkTeacherSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, QuizStudent, \
-    QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI
+    QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -1571,3 +1571,181 @@ class HallandSubmitRecord(APIView):
         myrecord.save()
         serializer = HallandAPISerializer(myrecord)
         return Response(serializer.data)
+
+class TeacherAddHomeWork(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        mydata = request.data
+        mydata['Teacher'] = teacher.pk
+        serializer = HomeWorkTeacherSerializer(data=mydata)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class TeacherEditHomeWork(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        mydata = request.data
+        myhomework = HomeWorkTeacher.objects.filter(id=request.data['id']).first()
+        mydata['Classes']=request.data['Classes']
+        mydata['DeadLine'] = request.data['DeadLine']
+        mydata['Explanation'] = request.data['Explanation']
+        mydata['HomeWorkQuestions'] = request.data['HomeWorkQuestions']
+        mydata['Teacher']=teacher.pk
+        serializer = HomeWorkTeacherSerializer(myhomework, data=mydata)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class TeacherDeleteHomeWork(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        mydata = request.data
+        myhomework = HomeWorkTeacher.objects.filter(Teacher=teacher, id=request.data['id']).first()
+        if not myhomework:
+            raise AuthenticationFailed("there is no such a homework")
+        myhomework.delete()
+        myhomework.save()
+        return Response({'message':'your homework was deleted successfully'})
+
+class TeacherPublishHomeWork(APIView):
+    def post(selfself, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        myhomework = HomeWorkTeacher.objects.filter(id=request.data['id']).first()
+        if not myhomework:
+            raise AuthenticationFailed("there is no such a homework")
+        myclassStudents = ClassStudent.objects.filter(Classes=myhomework.Classes).all()
+        for myclassStudent in myclassStudents:
+            obj = HomeWorkStudent.objects.create(Student=myclassStudent, HomeWorkTeacher=myhomework)
+            obj.save()
+
+        return Response({'message': 'Your homework is visible to students now'})
+
+class TeacherAllHomeWorks(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+
+class TeacherEnterClass(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        payload = {
+            'Class_ID': request.data['id'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'iat': datetime.datetime.utcnow(),
+        }
+
+        token = jwt.encode(payload, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithm='HS256')
+
+        response = Response()
+
+        response.set_cookie(key='class', value=token, httponly=True)
+        # response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
+        response.data = {
+            'class': token
+        }
+
+        return response
+
+class StudentEnterClass(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        payload = {
+            'Class_ID': request.data['id'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'iat': datetime.datetime.utcnow(),
+        }
+
+        token = jwt.encode(payload, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithm='HS256')
+
+        response = Response()
+
+        response.set_cookie(key='class', value=token, httponly=True)
+        # response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
+        response.data = {
+            'class': token
+        }
+
+        return response

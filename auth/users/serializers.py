@@ -8,7 +8,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
     StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
-    QuizStudent, QuizQuestion, QuizStudentRecord, HallandAPI
+    QuizStudent, QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -115,7 +115,7 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ['id', 'first_name', 'last_name', 'National_ID', 'Father_Phone_Number',
-                  'Father_first_name', 'Father_last_name', 'Grade_Level', 'password',
+                  'Father_first_name', 'Grade_Level', 'password',
                   'password2', 'Address', 'LandLine', 'School','Email']
 
     def validate(self, attrs):
@@ -155,10 +155,6 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'first_name': 'Father\'s First name cannot be empty.'}
             )
-        if not attrs.get('Father_last_name'):
-            raise serializers.ValidationError(
-                {'last_name': 'Father\'s Last name cannot be empty.'}
-            )
         if not attrs.get('Grade_Level'):
             raise serializers.ValidationError(
                 {'Grade_Level': 'grade level must be selected.'}
@@ -183,7 +179,6 @@ class StudentSerializer(serializers.ModelSerializer):
             School=validated_data['School'],
             LandLine =validated_data['LandLine'],
             Father_first_name=validated_data['Father_first_name'],
-            Father_last_name=validated_data['Father_last_name'],
             Address=validated_data['Address'],
             Grade_Level=validated_data['Grade_Level'],
             password=make_password(validated_data['password']),
@@ -584,3 +579,9 @@ class HallandAPISerializer(serializers.ModelSerializer):
     class Meta:
         model = HallandAPI
         fields = '__all__'
+
+class HomeWorkTeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HomeWorkTeacher
+        fields = '__all__'
+

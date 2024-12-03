@@ -87,6 +87,7 @@ class SchoolProfile(models.Model):
     information = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='SchoolProfile')
+
 class UserProfile(models.Model):
     bio = models.CharField(max_length=300, blank=True, null=True)
     profile_image = models.ImageField(upload_to='profile_image/', blank=True, null=True)
@@ -114,7 +115,6 @@ class Student(models.Model):
     Father_Phone_Number = models.CharField(max_length=11, unique=True)
     LandLine = models.CharField(max_length=11, unique=True)
     Father_first_name = models.CharField(max_length=100)
-    Father_last_name = models.CharField(max_length=100)
     School = models.ForeignKey(School, on_delete=models.CASCADE)
     Address = models.CharField(max_length=100)
     Grade_Level = models.CharField(max_length=20, choices=GradeLevel, blank=False)
@@ -284,3 +284,15 @@ class HallandAPI(models.Model):
     Conventional = models.BooleanField()
     Time = models.DateTimeField(default=datetime.datetime.now)
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+class HomeWorkTeacher(models.Model):
+    Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    HomeWorkQuestions = models.FileField(upload_to='profile_image/', blank=True, null=True)
+    Explanation = models.TextField()
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    DeadLine = models.DateTimeField(blank=False, null=False)
+
+class HomeWorkStudent(models.Model):
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    HomeWorkAnswer = models.FileField(upload_to='profile_image/', blank=True, null=True)
+    HomeWorkTeacher = models.ForeignKey(HomeWorkTeacher, on_delete=models.CASCADE, related_name='HomeWorkStudent')
