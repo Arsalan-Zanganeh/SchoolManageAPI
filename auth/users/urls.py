@@ -14,7 +14,9 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     QuizQuestionsTeacherView, AddQuizQuestionView, DeleteQuizQuestionView, EditQuizQuestionView, \
     StudentAnswerQuestion, StudentShowQuestions, StudentStartExam, TeacherWatchRecords, \
     StudentfinishExam, RecordToStudent, StudentShowRecords, StudentShowAnswers, HallandSubmitRecord, \
-    HallandRecordsView, TeacherClassStudentView
+    HallandRecordsView, TeacherClassStudentView, TeacherEnterClass, StudentEnterClass, StudentSeeHomeworkRecords, \
+    StudentSendHomework, StudentSeeHomeworks, TeacherAllHomeWorks, TeacherPublishHomeWork, TeacherDeleteHomeWork, \
+    TeacherEditHomeWork, TeacherAddHomeWork
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -74,4 +76,14 @@ urlpatterns = [
     path('student-submit-halland/', HallandSubmitRecord.as_view()),
     path('student-watch-halland-records/', HallandRecordsView.as_view()),
     path('teacher-class-students/', TeacherClassStudentView.as_view()),
+    path('teacher-login-class/', TeacherEnterClass.as_view()),
+    path('student-login-class/', StudentEnterClass.as_view()),
+    path('student-homework-records/', StudentSeeHomeworkRecords.as_view()),
+    path('student-send-homework/', StudentSendHomework.as_view()),
+    path('student-see-homeworks/', StudentSeeHomeworks.as_view()),
+    path('teacher-all-homeworks/', TeacherAllHomeWorks.as_view()),
+    path('teacher-publish-homework/', TeacherPublishHomeWork.as_view()),
+    path('teacher-delete-homework/', TeacherDeleteHomeWork.as_view()),
+    path('teacher-edit-homework/', TeacherEditHomeWork.as_view()),
+    path('teacher-add-homework/', TeacherAddHomeWork.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

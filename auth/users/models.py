@@ -287,12 +287,14 @@ class HallandAPI(models.Model):
 
 class HomeWorkTeacher(models.Model):
     Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-    HomeWorkQuestions = models.FileField(upload_to='profile_image/', blank=True, null=True)
-    Explanation = models.TextField()
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    Is_Published = models.BooleanField(default=False)
+    Title = models.TextField()
+    Description = models.TextField()
     DeadLine = models.DateTimeField(blank=False, null=False)
 
 class HomeWorkStudent(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     HomeWorkAnswer = models.FileField(upload_to='profile_image/', blank=True, null=True)
+    SendingTime = models.DateTimeField(default=datetime.datetime.now)
     HomeWorkTeacher = models.ForeignKey(HomeWorkTeacher, on_delete=models.CASCADE, related_name='HomeWorkStudent')

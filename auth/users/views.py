@@ -17,7 +17,7 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
     TeacherQuizSerializer, QuizStudentSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
-    HallandAPISerializer, HomeWorkTeacherSerializer
+    HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, QuizStudent, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent
@@ -59,7 +59,7 @@ class LoginView(APIView):
 
         payload = {
             'National_ID': user.National_ID,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=120),
             'iat': datetime.datetime.utcnow(),
         }
 
@@ -263,7 +263,7 @@ class LoginSchoolView(APIView):
         payload = {
             'Postal_Code': school.Postal_Code,
             'School_Name': school.School_Name,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=120),
             'iat': datetime.datetime.utcnow(),
         }
 
@@ -1373,8 +1373,6 @@ class StudentStartExam(APIView):
                 }
                 return resp2
 
-
-
 class TeacherWatchRecords(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
@@ -1587,8 +1585,22 @@ class TeacherAddHomeWork(APIView):
         if not teacher:
             raise AuthenticationFailed("There is no such a teacher")
 
+        token = request.COOKIES.get('class')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(pk=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
         mydata = request.data
         mydata['Teacher'] = teacher.pk
+        mydata['Classes'] = myclass.pk
         serializer = HomeWorkTeacherSerializer(data=mydata)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -1610,11 +1622,13 @@ class TeacherEditHomeWork(APIView):
             raise AuthenticationFailed("There is no such a teacher")
 
         mydata = request.data
-        myhomework = HomeWorkTeacher.objects.filter(id=request.data['id']).first()
-        mydata['Classes']=request.data['Classes']
+        myhomework = HomeWorkTeacher.objects.filter(id=request.data['Homework_ID']).first()
+        if myhomework.Is_Published:
+            raise AuthenticationFailed("this homework is already published")
+        mydata['Classes']=myhomework.Classes.pk
         mydata['DeadLine'] = request.data['DeadLine']
-        mydata['Explanation'] = request.data['Explanation']
-        mydata['HomeWorkQuestions'] = request.data['HomeWorkQuestions']
+        mydata['Description'] = request.data['Description']
+        mydata['Title'] = request.data['Title']
         mydata['Teacher']=teacher.pk
         serializer = HomeWorkTeacherSerializer(myhomework, data=mydata)
         serializer.is_valid(raise_exception=True)
@@ -1637,7 +1651,7 @@ class TeacherDeleteHomeWork(APIView):
             raise AuthenticationFailed("There is no such a teacher")
 
         mydata = request.data
-        myhomework = HomeWorkTeacher.objects.filter(Teacher=teacher, id=request.data['id']).first()
+        myhomework = HomeWorkTeacher.objects.filter(Teacher=teacher, id=request.data['Homework_ID']).first()
         if not myhomework:
             raise AuthenticationFailed("there is no such a homework")
         myhomework.delete()
@@ -1659,12 +1673,16 @@ class TeacherPublishHomeWork(APIView):
         if not teacher:
             raise AuthenticationFailed("There is no such a teacher")
 
-        myhomework = HomeWorkTeacher.objects.filter(id=request.data['id']).first()
+        myhomework = HomeWorkTeacher.objects.filter(id=request.data['Homework_ID']).first()
         if not myhomework:
             raise AuthenticationFailed("there is no such a homework")
+        if myhomework.Is_Published:
+            raise AuthenticationFailed("this homework is already published")
+        myhomework.Is_Published = True
+        myhomework.save()
         myclassStudents = ClassStudent.objects.filter(Classes=myhomework.Classes).all()
         for myclassStudent in myclassStudents:
-            obj = HomeWorkStudent.objects.create(Student=myclassStudent, HomeWorkTeacher=myhomework)
+            obj = HomeWorkStudent.objects.create(Student=myclassStudent.Student, HomeWorkTeacher=myhomework)
             obj.save()
 
         return Response({'message': 'Your homework is visible to students now'})
@@ -1684,6 +1702,23 @@ class TeacherAllHomeWorks(APIView):
         if not teacher:
             raise AuthenticationFailed("There is no such a teacher")
 
+        token = request.COOKIES.get('class')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        homeworks = HomeWorkTeacher.objects.filter(Teacher=teacher, Classes=myclass).all()
+        serializer = HomeWorkTeacherSerializer(homeworks, many=True)
+        return Response(serializer.data)
+
 class TeacherEnterClass(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
@@ -1701,7 +1736,7 @@ class TeacherEnterClass(APIView):
 
         payload = {
             'Class_ID': request.data['id'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=120),
             'iat': datetime.datetime.utcnow(),
         }
 
@@ -1730,11 +1765,11 @@ class StudentEnterClass(APIView):
 
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
         if not student:
-            raise AuthenticationFailed("There is no such a teacher")
+            raise AuthenticationFailed("There is no such a student")
 
         payload = {
             'Class_ID': request.data['id'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=120),
             'iat': datetime.datetime.utcnow(),
         }
 
@@ -1749,3 +1784,77 @@ class StudentEnterClass(APIView):
         }
 
         return response
+
+class StudentSeeHomeworks(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        token = request.COOKIES.get('class')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        homeworks = HomeWorkTeacher.objects.filter(Classes=myclass).all()
+        serializer = HomeWorkTeacherSerializer(homeworks, many=True)
+        return Response(serializer.data)
+
+class StudentSendHomework(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        homeworkteacher = HomeWorkTeacher.objects.filter(id=request.data['Homework_ID']).first()
+        studenthomework = HomeWorkStudent.objects.create(HomeWorkTeacher=homeworkteacher, Student=student,
+                                                         SendingTime=datetime.datetime.now(),
+                                                         HomeWorkAnswer=request.data['HomeWorkAnswer'])
+        studenthomework.save()
+        serializer = HomeWorkStudentSerializer(studenthomework)
+        return Response(serializer.data)
+
+class StudentSeeHomeworkRecords(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        homeworks = HomeWorkStudent.objects.filter(HomeWorkTeacher=request.data['Homework_ID']).all()
+        serializer = HomeWorkStudentSerializer(homeworks, many=True)
+        return Response(serializer.data)
