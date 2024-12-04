@@ -1167,12 +1167,12 @@ class StudentQuizView(APIView):
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Expired token!")
 
-        myclass = Student.objects.filter(id=payload['Class_ID']).first()
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
         if not myclass:
             raise AuthenticationFailed("there is no such a student")
 
         quizzes = QuizTeacher.objects.filter(Classes=myclass).all()
-        serializer = StudentQuestionSerializer(quizzes, many=True)
+        serializer = TeacherQuizSerializer(quizzes, many=True)
         return Response(serializer.data)
 
 class StudentAnswerQuestion(APIView):
