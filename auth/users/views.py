@@ -15,11 +15,11 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     TeacherProfileHalfSerializer, StudentProfileCompleteViewSerializer, UserProfileCompleteViewSerializer, \
     TeacherProfileCompleteViewSerializer, NotificationStudentSerializer, NotificationSchoolSerializer, \
     ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
-    TeacherQuizSerializer, QuizStudentSerializer, StudentSetNewPasswordSerializer, \
+    TeacherQuizSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
     HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
-    SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, QuizStudent, \
+    SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent
 from django.db.models import F
 import jwt, datetime
@@ -955,15 +955,25 @@ class CreateNewQuizView(APIView):
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
         if not teacher:
             raise AuthenticationFailed("There is no such a teacher")
-        myclass = Classes.objects.filter(id=request.data['Classes']).first()
+
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+
         if not myclass:
             raise AuthenticationFailed("There is no such a class")
+
         myquiz = QuizTeacher.objects.create(Title=request.data['Title'], Teacher=teacher, Classes=myclass,
                                    OpenTime=datetime.datetime.now() + datetime.timedelta(days=1),
-                                   CloseTime=datetime.datetime.now() + datetime.timedelta(days=1),
-                                   DurationHour=0, DurationMinute=0, MaxParticipation=request.data['MaxParticipation'],
-                                   ShowDegreeAfterExam=request.data['ShowDegreeAfterExam'],
-                                   Mode='created')
+                                   DurationHour=0, DurationMinute=0)
         myquiz.save()
         serializer = CreateNewQuizSerializer(myquiz)
         return Response(serializer.data)
@@ -981,9 +991,11 @@ class AddQuizQuestionView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['QuizTeacher'], Mode='created').first()
+        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['QuizTeacher']).first()
         if not quiz:
             raise AuthenticationFailed("No such a quiz")
+        if quiz.Is_Published:
+            raise AuthenticationFailed("You can not change this quiz")
         if not (0<request.data['Answer']<5):
             raise AuthenticationFailed("Invalid Answer")
         question = QuizQuestion.objects.create(QuizTeacher=quiz, Question=request.data['Question'],
@@ -1006,9 +1018,11 @@ class DeleteQuizQuestionView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['QuizTeacher'], Mode='created').first()
+        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['QuizTeacher']).first()
         if not quiz:
             raise AuthenticationFailed("No such a quiz")
+        if quiz.Is_Published:
+            raise AuthenticationFailed("You can not change this quiz")
         question = QuizQuestion.objects.filter(QuizTeacher=quiz, pk=request.data['Question_ID']).first()
         question.delete()
         return Response({'message':'Your question has been deleted'})
@@ -1026,9 +1040,11 @@ class EditQuizQuestionView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['QuizTeacher'], Mode='created').first()
+        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['QuizTeacher']).first()
         if not quiz:
             raise AuthenticationFailed("No such a quiz")
+        if quiz.Is_Published:
+            raise AuthenticationFailed("You can not change this quiz")
         question = QuizQuestion.objects.filter(QuizTeacher=quiz, pk=request.data['Question_ID']).first()
         question.Question = request.data['Question']
         question.Answer=request.data['Answer']
@@ -1077,13 +1093,23 @@ class TeacherQuizesView(APIView):
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
         if not teacher:
             raise AuthenticationFailed("There is no such a teacher")
-        quizes = QuizTeacher.objects.filter(Teacher=teacher).all()
+
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a teacher")
+
+        quizes = QuizTeacher.objects.filter(Teacher=teacher, Classes=myclass).all()
         mytime = datetime.datetime.now()
-        for quiz in quizes:
-            mytime2 = quiz.CloseTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
-            if quiz.Mode == 'started' and mytime > mytime2 :
-                quiz.Mode = 'finished'
-                quiz.save()
         serializer = TeacherQuizSerializer(quizes, many=True)
         return Response(serializer.data)
 
@@ -1100,31 +1126,17 @@ class StartQuizView(APIView):
             raise AuthenticationFailed("Expired token!")
 
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        quiz = QuizTeacher.objects.filter(Teacher=teacher,Mode='created',id=request.data['id']).first()
+        quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['id']).first()
+        if not quiz:
+            raise AuthenticationFailed("There is no such a quiz")
+        if quiz.Is_Published:
+            raise AuthenticationFailed("this quiz is already started")
         if quiz is not None:
             quiz.OpenTime=request.data['OpenTime']
-            quiz.CloseTime=request.data['CloseTime']
             quiz.DurationHour=request.data['DurationHour']
             quiz.DurationMinute=request.data['DurationMinute']
-            quiz.Mode='started'
+            quiz.Is_Published=True
             quiz.save()
-            noww = datetime.datetime.now()
-            mystr = 'not_started'
-            q1 = datetime.datetime.strptime(quiz.OpenTime, '%Y-%m-%d %H:%M')
-            if noww > q1:
-                mystr = 'started'
-            q2 = datetime.datetime.strptime(quiz.CloseTime, '%Y-%m-%d %H:%M')
-            print(q2)
-            print(noww)
-            if noww > q2:
-                mystr = 'finished'
-            myclass = quiz.Classes
-            students = ClassStudent.objects.filter(Classes=myclass).all()
-            for student in students:
-                q = QuizStudent.objects.create(Title=quiz.Title, Topic=myclass.Topic, Student=student.Student,
-                                               QuizTeacher=quiz, Mode=mystr, CloseTime=request.data['CloseTime'],
-                                               OpenTime=request.data['OpenTime'])
-                q.save()
             return Response({'message':'Your quiz is visible to Students now'})
         else:
             return Response({'Error':'There is no such a quiz'})
@@ -1144,28 +1156,23 @@ class StudentQuizView(APIView):
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
         if not student:
             raise AuthenticationFailed("there is no such a student")
-        quizzes = QuizStudent.objects.filter(Student=student).all()
-        for quiz in quizzes:
-            if quiz.Mode == 'not_started' or quiz.Mode == 'started':
-                start = quiz.OpenTime
-                stop = quiz.CloseTime
-                noww = datetime.datetime.now()
-                mystr = 'not_started'
-                if start < noww and quiz.Mode != 'started':
-                    quiz.Mode = 'started'
-                    quiz.save()
-                if stop < noww:
-                    quiz.Mode = 'finished'
-                    quiz.save()
-            elif quiz.Mode == 'continue':
-                start = quiz.OpenTime
-                stop = quiz.CloseTime
-                noww = datetime.datetime.now()
-                if stop < noww:
-                    quiz.Mode = 'finished'
-                    quiz.save()
 
-        serializer = QuizStudentSerializer(quizzes, many=True)
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Student.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("there is no such a student")
+
+        quizzes = QuizTeacher.objects.filter(Classes=myclass).all()
+        serializer = StudentQuestionSerializer(quizzes, many=True)
         return Response(serializer.data)
 
 class StudentAnswerQuestion(APIView):
@@ -1182,57 +1189,27 @@ class StudentAnswerQuestion(APIView):
 
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
 
-        token = request.COOKIES.get('exam')
 
-        if not token:
-            raise AuthenticationFailed("Unauthenticated!")
-
-        try:
-            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            quiz = QuizStudent.objects.filter(Student=student,pk=request.data['QuizStudent_ID']).first()
-            quiz.Mode = 'finished'
-            quiz.save()
-            quizteacher = quiz.QuizTeacher
-            questions = QuizQuestion.objects.filter(QuizTeacher=quizteacher).all()
-            correct = 0
-            whole = 0
-            for question in questions:
-                checkThis = QuizQuestionStudent.objects.filter(Student=student, QuizQuestion=question,
-                                                               OnParticipation=quiz.ParticipationCount).first()
-                whole += 1
-                if not checkThis:
-                    continue
-                if checkThis.StudentAnswer == question.Answer:
-                    correct += 1
-            deg = float(correct / whole)
-            deg = deg * 100
-            now1 = datetime.datetime.now()
-            q = QuizStudentRecord.objects.create(QuizStudent=quiz, OnParticipation=quiz.ParticipationCount,
-                                                 Degree=deg, FinishTime=now1)
-            q.save()
-            resp1 = Response()
-            resp1.data = {
-                'message': 'Your exam time has finished and your score is saved.'
-            }
-            return resp1
-
-        quiz = QuizStudent.objects.filter(Student=student,pk=payload['exam'],Mode='continue').first()
-
-        if not quiz:
-            raise AuthenticationFailed("There is no such an exam")
 
         ans = request.data['StudentAnswer']
         if ans<0 or ans>4:
             raise AuthenticationFailed("answer should be 1 to 4 or null(0)")
         question = QuizQuestion.objects.filter(id=request.data['QuizQuestion_ID']).first()
+
+        quizteacher = question.QuizTeacher
+        if not quizteacher:
+            raise AuthenticationFailed("There is no such a quiz")
+
+        obj = QuizStudentRecord.objects.filter(Student=student, QuizTeacher=quizteacher).first()
+        if obj:
+            raise AuthenticationFailed("You have already finished your exam")
+
+
         if not question:
             raise AuthenticationFailed("There is no such a question")
-        obj = QuizQuestionStudent.objects.filter(QuizQuestion=question, OnParticipation=quiz.ParticipationCount,
-                                                 Student=student).first()
+        obj = QuizQuestionStudent.objects.filter(QuizQuestion=question, Student=student).first()
         if not obj:
-            obj2 = QuizQuestionStudent.objects.create(QuizQuestion=question, OnParticipation=quiz.ParticipationCount,
-                                                     Student=student, StudentAnswer=ans)
+            obj2 = QuizQuestionStudent.objects.create(QuizQuestion=question, Student=student, StudentAnswer=ans)
             obj2.save()
             return Response({'message':'Your answer is submitted'})
         obj.StudentAnswer=ans
@@ -1256,122 +1233,11 @@ class StudentShowQuestions(APIView):
         if not student:
             raise AuthenticationFailed("No such a student")
         quizteacher = QuizTeacher.objects.filter(pk=request.data['QuizTeacher']).first()
+        if not quizteacher:
+            raise AuthenticationFailed("There is no such a quiz")
         questions = QuizQuestion.objects.filter(QuizTeacher=quizteacher).all()
         serializer = StudentQuestionSerializer(questions, many=True)
         return Response(serializer.data)
-
-class StudentStartExam(APIView):
-    def post(self, request):
-        token = request.COOKIES.get('jwt')
-
-        if not token:
-            raise AuthenticationFailed("Unauthenticated!")
-
-        try:
-            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Expired token!")
-
-        student = Student.objects.filter(National_ID=payload['National_ID']).first()
-        if not student:
-            raise AuthenticationFailed("There is no such a student")
-        quiz = QuizStudent.objects.filter(Student=student, pk=request.data['QuizStudent_ID']).first()
-        if not quiz:
-            raise AuthenticationFailed("No such a quiz")
-
-        if quiz.Mode == 'continue':
-            resp = Response()
-            resp.delete_cookie('exam')
-            if quiz.StudentStartQuizTime + datetime.timedelta(hours=quiz.QuizTeacher.DurationHour, minutes=quiz.QuizTeacher.DurationMinute) <= datetime.datetime.now():
-                quiz.Mode = 'finished'
-                quiz.save()
-                quizteacher = quiz.QuizTeacher
-                questions = QuizQuestion.objects.filter(QuizTeacher=quizteacher).all()
-                correct = 0
-                whole = 0
-                for question in questions:
-                    checkThis = QuizQuestionStudent.objects.filter(Student=student, QuizQuestion=quiz,
-                                                                   OnParticipation=quiz.ParticipationCount).first()
-                    if checkThis.StudentAnswer == question.Answer:
-                        correct += 1
-                    whole += 1
-                deg = float(correct/whole)
-                deg = deg * 100
-                now1 = datetime.datetime.now()
-                q = QuizStudentRecord.objects.create(QuizStudent=quiz, OnParticipation=quiz.OnParticipation,
-                                                 Degree=deg, FinishTime=now1)
-                q.save()
-                resp1 = Response()
-                resp1.data['message']= 'Your exam time has finished and your score is saved.'
-                return resp1
-            else:
-                t1 = quiz.StudentStartQuizTime + datetime.timedelta(hours=quiz.QuizTeacher.DurationHour, minutes=quiz.QuizTeacher.DurationMinute)
-                t2 = datetime.datetime.now()
-                timeLeft =  t1 - t2
-                total_second = (timeLeft.total_seconds())
-                hours = total_second // 3600
-                minutes = (total_second % 3600) // 60
-                seconds = total_second % 60
-                payload = {
-                    'exam': quiz.pk,
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=hours, minutes=minutes,
-                                                                        seconds=seconds),
-                    'iat': datetime.datetime.utcnow(),
-                }
-
-                token = jwt.encode(payload, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
-                                   algorithm='HS256')
-
-                response = Response()
-
-                response.set_cookie(key='exam', value=token, httponly=True)
-                #response.set_cookie(key='exam', value=token, httponly=True, samesite='None', secure=True)
-                response.data = {
-                    'message': 'You have started your exam'
-                }
-                return response
-        else:
-            start = quiz.OpenTime
-            stop = quiz.CloseTime
-            noww = datetime.datetime.now()
-            mystr = 'not_started'
-            if start < noww and quiz.Mode != 'started':
-                quiz.Mode = 'started'
-                quiz.save()
-            if stop < noww:
-                quiz.Mode = 'finished'
-                quiz.save()
-
-        if quiz.Mode == 'started':
-            if quiz.ParticipationCount < quiz.QuizTeacher.MaxParticipation:
-                quiz.ParticipationCount += 1
-                quiz.Mode='continue'
-                quiz.StudentStartQuizTime = datetime.datetime.now()
-                quiz.save()
-                payload = {
-                    'exam': quiz.pk,
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=quiz.QuizTeacher.DurationHour,
-                                                                        minutes=quiz.QuizTeacher.DurationMinute),
-                    'iat': datetime.datetime.utcnow(),
-                }
-
-                token = jwt.encode(payload, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
-                                   algorithm='HS256')
-
-                response = Response()
-
-                response.set_cookie(key='exam', value=token, httponly=True)
-                #response.set_cookie(key='exam', value=token, httponly=True, samesite='None', secure=True)
-                response.data = {
-                    'message': 'Your can continue your exam'
-                }
-                return response
-            else:
-                resp2 = Response()
-                resp2.data = {
-                    'message': 'You have reached the maximum participation for this exam'
-                }
-                return resp2
 
 class TeacherWatchRecords(APIView):
     def post(self, request):
@@ -1391,7 +1257,7 @@ class TeacherWatchRecords(APIView):
         quiz = QuizTeacher.objects.filter(pk=request.data['Quiz_ID'], Teacher=teacher).first()
         if not quiz:
             raise AuthenticationFailed("There is no such a quiz")
-        records = QuizStudentRecord.objects.filter(QuizStudent__QuizTeacher=quiz).all()
+        records = QuizStudentRecord.objects.filter(QuizTeacher=quiz).all()
         serializer = StudentQuizRecordSerializer(records, many=True)
         return Response(serializer.data)
 
@@ -1410,17 +1276,19 @@ class StudentfinishExam(APIView):
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
         if not student:
             raise AuthenticationFailed("There is no such a student")
-        quiz = QuizStudent.objects.filter(Student=student, pk=request.data['QuizStudent_ID'], Mode='continue').first()
-        if not quiz:
-            raise AuthenticationFailed("No such a quiz")
-        quiz.Mode = 'finished'
-        quizteacher = quiz.QuizTeacher
+
+        quizteacher = QuizTeacher.objects.filter(id=request.data['QuizTeacher']).first()
+        if not quizteacher:
+            raise AuthenticationFailed("There is no such a quiz")
+
+        obj = QuizStudentRecord.objects.filter(Student=student, QuizTeacher=quizteacher).first()
+        if obj:
+            raise AuthenticationFailed("You have already finished your exam")
         questions = QuizQuestion.objects.filter(QuizTeacher=quizteacher).all()
         correct = 0
         whole = 0
         for question in questions:
-            checkThis = QuizQuestionStudent.objects.filter(Student=student, QuizQuestion=question,
-                                                           OnParticipation=quiz.ParticipationCount).first()
+            checkThis = QuizQuestionStudent.objects.filter(Student=student, QuizQuestion=question).first()
 
             whole += 1
             if not checkThis:
@@ -1430,10 +1298,8 @@ class StudentfinishExam(APIView):
         deg = float(correct / whole)
         deg = deg * 100
         now1 = datetime.datetime.now()
-        q = QuizStudentRecord.objects.create(QuizStudent=quiz, OnParticipation=quiz.ParticipationCount,
-                                             Degree=deg, FinishTime=now1)
+        q = QuizStudentRecord.objects.create(Degree=deg, FinishTime=now1, QuizTeacher=quizteacher, Student = student)
         q.save()
-        quiz.save()
         resp1 = Response()
         resp1.data = {
             'message': 'You have finished your exam.'
@@ -1452,19 +1318,16 @@ class RecordToStudent(APIView):
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Expired token!")
 
-        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        if not teacher:
-            raise AuthenticationFailed("There is no such a student")
-        record = QuizStudentRecord.objects.filter(id=request.data['id']).first()
+        record = QuizStudentRecord.objects.filter(id=request.data['QuizStudentRecord_ID']).first()
         if not record:
             raise AuthenticationFailed("There is no such a record")
-        student = record.QuizStudent.Student
+        student = record.Student
         if not student:
             raise AuthenticationFailed("There is no such a student")
         serializer = StudentSerializer(student)
         return Response(serializer.data)
 
-class StudentShowRecords(APIView):
+class StudentShowRecord(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
 
@@ -1479,18 +1342,16 @@ class StudentShowRecords(APIView):
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
         if not student:
             raise AuthenticationFailed("There is no such a student")
-        quiz = QuizStudent.objects.filter(id=request.data['QuizStudent_ID']).first()
+        quiz = QuizTeacher.objects.filter(id=request.data['QuizTeacher_ID']).first()
         if not quiz:
             raise AuthenticationFailed("There is no such a quiz")
         noww = datetime.datetime.now()
-        validAfter = quiz.CloseTime + datetime.timedelta(hours=quiz.QuizTeacher.DurationHour, minutes=quiz.QuizTeacher.DurationMinute)
+        validAfter = quiz.OpenTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
+        if noww < quiz.OpenTime:
+            raise AuthenticationFailed("Exam is not started yet")
         if noww > validAfter:
-            records = QuizStudentRecord.objects.filter(QuizStudent = quiz).all()
-            serializer = StudentQuizRecordSerializer(records, many=True)
-            return Response(serializer.data)
-        elif quiz.QuizTeacher.ShowDegreeAfterExam:
-            records = QuizStudentRecord.objects.filter(QuizStudent = quiz).all()
-            serializer = StudentQuizRecordSerializer(records, many=True)
+            records = QuizStudentRecord.objects.filter(QuizTeacher = quiz).first()
+            serializer = StudentQuizRecordSerializer(records)
             return Response(serializer.data)
         return Response({'message':'it is not valid to show your records'})
 
@@ -1509,13 +1370,13 @@ class StudentShowAnswers(APIView):
         student = Student.objects.filter(National_ID=payload['National_ID']).first()
         if not student:
             raise AuthenticationFailed("There is no such a teacher")
-        quiz2 = QuizStudent.objects.filter(Student=student, id=request.data['QuizStudent_ID']).first()
+        # quiz2 = QuizStudent.objects.filter(Student=student, id=request.data['QuizStudent_ID']).first()
         quiz = quiz2.QuizTeacher
         if not quiz:
             raise AuthenticationFailed("No such a quiz")
 
         noww = datetime.datetime.now()
-        validAfter = quiz.CloseTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
+        validAfter = quiz.OpenTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
         if noww > validAfter:
             questions = QuizQuestion.objects.filter(QuizTeacher=quiz).all()
             serializer = AddQuizQuestionSerializer(questions, many=True)

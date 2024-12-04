@@ -12,8 +12,8 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     StudentRequestPasswordResetEmailView, StudentSetNewPasswordAPIView, StudentPasswordTokenCheckAPI, \
     TeacherRequestPasswordResetEmailView, TeacherSetNewPasswordAPIView, TeacherPasswordTokenCheckAPI, \
     QuizQuestionsTeacherView, AddQuizQuestionView, DeleteQuizQuestionView, EditQuizQuestionView, \
-    StudentAnswerQuestion, StudentShowQuestions, StudentStartExam, TeacherWatchRecords, \
-    StudentfinishExam, RecordToStudent, StudentShowRecords, StudentShowAnswers, HallandSubmitRecord, \
+    StudentAnswerQuestion, StudentShowQuestions, TeacherWatchRecords, \
+    StudentfinishExam, RecordToStudent, StudentShowRecord, StudentShowAnswers, HallandSubmitRecord, \
     HallandRecordsView, TeacherClassStudentView, TeacherEnterClass, StudentEnterClass, StudentSeeHomeworkRecords, \
     StudentSendHomework, StudentSeeHomeworks, TeacherAllHomeWorks, TeacherPublishHomeWork, TeacherDeleteHomeWork, \
     TeacherEditHomeWork, TeacherAddHomeWork
@@ -67,11 +67,10 @@ urlpatterns = [
     path('teacher-delete-quiz-question/', DeleteQuizQuestionView.as_view()),
     path('student-answer-question/', StudentAnswerQuestion.as_view()),
     path('student-show-questions/', StudentShowQuestions.as_view()),
-    path('student-start-exam/', StudentStartExam.as_view()),
     path('student-finish-exam/', StudentfinishExam.as_view()),
     path('teacher-watch-records/', TeacherWatchRecords.as_view()),
     path('teacher-watch-record/', RecordToStudent.as_view()),
-    path('student-show-records/', StudentShowRecords.as_view()),
+    path('student-show-record/', StudentShowRecord.as_view()),
     path('student-show-answers/', StudentShowAnswers.as_view()),
     path('student-submit-halland/', HallandSubmitRecord.as_view()),
     path('student-watch-halland-records/', HallandRecordsView.as_view()),
