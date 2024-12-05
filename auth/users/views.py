@@ -3,6 +3,7 @@ from http.client import responses
 from django.contrib.sessions.models import Session
 from django.core.serializers import serialize
 from django.contrib.auth.hashers import check_password, make_password
+from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -822,6 +823,7 @@ class NotificationUnseenCountStudentView(APIView):
         }
         return resp
 
+
 class RequestPasswordResetEmailView(APIView):
     serializer_class = ResetPasswordEmailRequestSerializer
 
@@ -830,19 +832,26 @@ class RequestPasswordResetEmailView(APIView):
         serializer = self.serializer_class(data=request.data)
         email = request.data['email']
         nid = request.data['National_ID']
-        if User.objects.filter(email=email,National_ID=nid).exists():
+
+        if User.objects.filter(email=email, National_ID=nid).exists():
             user = User.objects.get(email=email)
-            uibd64 = urlsafe_base64_encode(smart_bytes(user.id))
+            uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            current_site = get_current_site(request=request).domain
-            relativeLink = reverse('password-reset-confirm', kwargs={'uibd64': uibd64, 'token': token})
-            absurl = 'http://' + current_site + relativeLink
-            email_body = "doob doob doob\n" + absurl
-            data = {'email_body': email_body, 'to_email': user.email, 'email_subject': 'Reset your password'}
+
+            # Generate the frontend URL with uidb64 and token
+            absurl = f'http://localhost:5173/PasswordResetAdmin/{uidb64}/{token}/'
+            email_body = f"Hello,\n\nPlease use the link below to reset your password:\n{absurl}"
+            data = {
+                'email_body': email_body,
+                'to_email': user.email,
+                'email_subject': 'Reset your password'
+            }
+
             Util.send_email(data)
-            return Response({'success':'We have sent you a link to reset your password'})
+            return Response({'success': 'We have sent you a link to reset your password'})
         else:
-            return Response({'fail': 'There is no such a user'})
+            return Response({'fail': 'There is no such user'})
+
 
 class PasswordTokenCheckAPI(APIView):
     def get(self, request, uibd64, token):
@@ -861,8 +870,10 @@ class SetNewPasswordAPIView(APIView):
 
     def patch(self, request):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response({'success':True,'message':'Your password has been set'})
+        if serializer.is_valid(raise_exception=True):
+            return Response({'success': True, 'message': 'Your password has been set'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class StudentRequestPasswordResetEmailView(APIView):
     serializer_class = ResetPasswordEmailRequestSerializer
@@ -870,21 +881,26 @@ class StudentRequestPasswordResetEmailView(APIView):
     def post(self, request):
         data = {'request': request, 'data': request.data}
         serializer = self.serializer_class(data=request.data)
-        Email = request.data['Email']
+        email = request.data['email']
         nid = request.data['National_ID']
-        if Student.objects.filter(Email=Email,National_ID=nid).exists():
-            student = Student.objects.get(Email=Email)
-            uibd64 = urlsafe_base64_encode(smart_bytes(student.id))
+        if Student.objects.filter(Email=email, National_ID=nid).exists():
+            student = Student.objects.get(Email=email)
+            uidb64 = urlsafe_base64_encode(smart_bytes(student.id))
             token = PasswordResetTokenGenerator().make_token(student)
-            current_site = get_current_site(request=request).domain
-            relativeLink = reverse('student-password-reset-confirm', kwargs={'uibd64': uibd64, 'token': token})
-            absurl = 'http://' + current_site + relativeLink
-            email_body = "doob doob doob\n" + absurl
-            data = {'email_body': email_body, 'to_email': student.Email, 'email_subject': 'Reset your password'}
+
+            # Generate the frontend URL with uidb64 and token
+            absurl = f'http://localhost:5173/PasswordResetStudent/{uidb64}/{token}/'
+            email_body = f"Hello,\n\nPlease use the link below to reset your password:\n{absurl}"
+            data = {
+                'email_body': email_body,
+                'to_email': student.Email,
+                'email_subject': 'Reset your password'
+            }
+
             Util.send_email(data)
-            return Response({'success':'We have sent you a link to reset your password'})
+            return Response({'success': 'We have sent you a link to reset your password'})
         else:
-            return Response({'fail': 'There is no such a student'})
+            return Response({'fail': 'There is no such student'})
 
 
 class StudentSetNewPasswordAPIView(APIView):
@@ -894,6 +910,7 @@ class StudentSetNewPasswordAPIView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response({'success':True,'message':'Your password has been set'})
+
 class StudentPasswordTokenCheckAPI(APIView):
     def get(self, request, uibd64, token):
         try:
@@ -912,21 +929,27 @@ class TeacherRequestPasswordResetEmailView(APIView):
     def post(self, request):
         data = {'request': request, 'data': request.data}
         serializer = self.serializer_class(data=request.data)
-        Email = request.data['Email']
+        email = request.data['email']
         nid = request.data['National_ID']
-        if Teacher.objects.filter(Email=Email,National_ID=nid).exists():
-            teacher = Teacher.objects.get(Email=Email)
-            uibd64 = urlsafe_base64_encode(smart_bytes(teacher.id))
+
+        if Teacher.objects.filter(Email=email, National_ID=nid).exists():
+            teacher = Teacher.objects.get(Email=email)
+            uidb64 = urlsafe_base64_encode(smart_bytes(teacher.id))
             token = PasswordResetTokenGenerator().make_token(teacher)
-            current_site = get_current_site(request=request).domain
-            relativeLink = reverse('teacher-password-reset-confirm', kwargs={'uibd64': uibd64, 'token': token})
-            absurl = 'http://' + current_site + relativeLink
-            email_body = "doob doob doob\n" + absurl
-            data = {'email_body': email_body, 'to_email': teacher.Email, 'email_subject': 'Reset your password'}
+
+            # Generate the frontend URL with uidb64 and token
+            absurl = f'http://localhost:5173/PasswordResetTeacher/{uidb64}/{token}/'
+            email_body = f"Hello,\n\nPlease use the link below to reset your password:\n{absurl}"
+            data = {
+                'email_body': email_body,
+                'to_email': teacher.Email,
+                'email_subject': 'Reset your password'
+            }
+
             Util.send_email(data)
-            return Response({'success':'We have sent you a link to reset your password'})
+            return Response({'success': 'We have sent you a link to reset your password'})
         else:
-            return Response({'fail': 'There is no such a student'})
+            return Response({'fail': 'There is no such teacher'})
 
 
 class TeacherSetNewPasswordAPIView(APIView):
@@ -1648,8 +1671,8 @@ class StudentEnterClass(APIView):
 
         response = Response()
 
-        response.set_cookie(key='class', value=token, httponly=True)
-        # response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='class', value=token, httponly=True)
+        response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'class': token
         }

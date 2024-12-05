@@ -459,31 +459,31 @@ class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
         fields = ['email']
 
 class SetNewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(min_length=6,max_length=68,write_only=True)
-    token = serializers.CharField(min_length=1,write_only=True)
-    uibd64 = serializers.CharField(min_length=1,write_only=True)
+    password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    token = serializers.CharField(min_length=1, write_only=True)
+    uidb64 = serializers.CharField(min_length=1, write_only=True)  # Corrected field name
 
     class Meta:
-        fields = ['password', 'token', 'uibd64']
+        fields = ['password', 'token', 'uidb64']
 
     def validate(self, attrs):
+        try:
+            password = attrs.get('password')
+            token = attrs.get('token')
+            uidb64 = attrs.get('uidb64')  # Corrected field name
 
-        password = attrs.get('password')
-        token = attrs.get('token')
-        uibd64 = attrs.get('uibd64')
+            id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(id=id)
 
-        id=force_str(urlsafe_base64_decode(uibd64))
-        user=User.objects.get(id=id)
+            if not PasswordResetTokenGenerator().check_token(user, token):
+                raise AuthenticationFailed('The reset link is invalid', code='authentication')
 
-        if not PasswordResetTokenGenerator().check_token(user,token):
-            raise AuthenticationFailed('The reset link is invalid')
+            user.set_password(password)
+            user.save()
 
-        user.set_password(password)
-        user.save()
-        return user
-
-
-        return super().is_valid(attrs)
+            return attrs  # Return the validated data as a dictionary
+        except:
+            raise AuthenticationFailed('The reset link is invalid', code='authentication')
 
 class CreateNewQuizSerializer(serializers.ModelSerializer):
     class Meta:
@@ -511,64 +511,59 @@ class StudentQuizRecordSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class StudentSetNewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(min_length=6,max_length=68,write_only=True)
-    token = serializers.CharField(min_length=1,write_only=True)
-    uibd64 = serializers.CharField(min_length=1,write_only=True)
+    password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    token = serializers.CharField(min_length=1, write_only=True)
+    uidb64 = serializers.CharField(min_length=1, write_only=True)  # Corrected field name
 
     class Meta:
-        fields = ['password', 'token', 'uibd64']
+        fields = ['password', 'token', 'uidb64']
 
     def validate(self, attrs):
-
         password = attrs.get('password')
         token = attrs.get('token')
-        uibd64 = attrs.get('uibd64')
+        uidb64 = attrs.get('uidb64')  # Corrected field name
 
-        id=force_str(urlsafe_base64_decode(uibd64))
-        student=Student.objects.get(id=id)
+        try:
+            id = force_str(urlsafe_base64_decode(uidb64))
+            student = Student.objects.get(id=id)
 
+            if not PasswordResetTokenGenerator().check_token(student, token):
+                raise AuthenticationFailed('The reset link is invalid', code='authentication')
 
+            student.password = make_password(password)
+            student.save()
 
-        if not PasswordResetTokenGenerator().check_token(student,token):
-            raise AuthenticationFailed('The reset link is invalid')
+            return attrs  # Return the validated data as a dictionary
+        except Student:
+            raise AuthenticationFailed('The reset link is invalid', code='authentication')
 
-        student.password = make_password(password)
-
-        student.save()
-        return student
-
-
-        return super().is_valid(attrs)
 
 class TeacherSetNewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(min_length=6,max_length=68,write_only=True)
-    token = serializers.CharField(min_length=1,write_only=True)
-    uibd64 = serializers.CharField(min_length=1,write_only=True)
+    password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    token = serializers.CharField(min_length=1, write_only=True)
+    uidb64 = serializers.CharField(min_length=1, write_only=True)  # Corrected field name
 
     class Meta:
-        fields = ['password', 'token', 'uibd64']
+        fields = ['password', 'token', 'uidb64']
 
     def validate(self, attrs):
-
         password = attrs.get('password')
         token = attrs.get('token')
-        uibd64 = attrs.get('uibd64')
+        uidb64 = attrs.get('uidb64')  # Corrected field name
 
-        id=force_str(urlsafe_base64_decode(uibd64))
-        teacher=Teacher.objects.get(id=id)
+        try:
+            id = force_str(urlsafe_base64_decode(uidb64))
+            teacher = Teacher.objects.get(id=id)
 
+            if not PasswordResetTokenGenerator().check_token(teacher, token):
+                raise AuthenticationFailed('The reset link is invalid', code='authentication')
 
+            teacher.password = make_password(password)
+            teacher.save()
 
-        if not PasswordResetTokenGenerator().check_token(teacher,token):
-            raise AuthenticationFailed('The reset link is invalid')
-
-        teacher.password = make_password(password)
-
-        teacher.save()
-        return teacher
-
-
-        return super().is_valid(attrs)
+            return attrs  # Return the validated data as a dictionary
+        except:
+            raise AuthenticationFailed('The reset link is invalid', code='authentication')
 
 class HallandAPISerializer(serializers.ModelSerializer):
     class Meta:
