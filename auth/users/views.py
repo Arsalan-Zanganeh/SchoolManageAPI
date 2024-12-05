@@ -17,10 +17,11 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
     TeacherQuizSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
-    HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer
+    HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer, PrinicipalCalendarSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
-    QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent
+    QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
+    PrinicipalCalendar
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -30,7 +31,16 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
 
+import datetime
+import os.path
+import webbrowser
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 # Create your views here.
@@ -1719,3 +1729,154 @@ class StudentSeeHomeworkRecords(APIView):
         homeworks = HomeWorkStudent.objects.filter(HomeWorkTeacher=request.data['Homework_ID']).all()
         serializer = HomeWorkStudentSerializer(homeworks, many=True)
         return Response(serializer.data)
+
+class PrinicipalCalendarView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('school')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        if not school:
+            raise AuthenticationFailed("There is no such a school")
+
+        mymodel = PrinicipalCalendar.objects.filter(School=school).first()
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        credentials_path = os.path.join(current_dir, "../media/profile_image/credentials.json")
+        if not mymodel:
+            mymodel = PrinicipalCalendar.objects.create(School=school)
+            token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
+            flow = InstalledAppFlow.from_client_secrets_file(
+                credentials_path, SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+            with open(token_path, "w") as token:
+                token.write(creds.to_json())
+
+        mymodel = PrinicipalCalendar.objects.filter(School=school).first()
+        token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
+        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        with open(token_path, "w") as token:
+            token.write(creds.to_json())
+
+        try:
+            # Initialize Google Calendar API service
+            service = build("calendar", "v3", credentials=creds)
+
+            # Call the Calendar API
+            now = datetime.datetime.now().isoformat() + "Z"  # 'Z' indicates UTC time
+            print("Getting the upcoming 10 events")
+            events_result = (
+                service.events()
+                .list(
+                    calendarId="primary",
+                    timeMin=now,
+                    maxResults=10,
+                    singleEvents=True,
+                    orderBy="startTime",
+                )
+                .execute()
+            )
+            events = events_result.get("items", [])
+
+            if not events:
+                return Response({"message": "No upcoming events found!"})
+
+            # Prints the start and name of the next 10 events
+            for event in events:
+                start = event["start"].get("dateTime", event["start"].get("date"))
+                print(start, event["summary"])
+            calendar_list = service.calendarList().list().execute()
+            primary_calendar = next((cal for cal in calendar_list['items'] if cal.get('primary')), None)
+            calendar_id = None
+            if primary_calendar:
+                calendar_id =  primary_calendar['id']  # This is the calendar ID for the primary calendar
+            else:
+                raise AuthenticationFailed("Primary calendar not found.")
+            calendar_url = f"https://calendar.google.com/calendar/u/0/r?cid="+str(calendar_id)
+            webbrowser.open(calendar_url)
+            return Response({"message":"It was done successfully"})
+
+        except:
+            return Response({"message":"An error occurred"})
+
+class StudentCalendarView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a school")
+
+        school = student.School
+        if not school:
+            raise AuthenticationFailed("This student has no school")
+        mymodel = PrinicipalCalendar.objects.filter(School=school).first()
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        credentials_path = os.path.join(current_dir, "../media/profile_image/credentials.json")
+        if not mymodel:
+            return Response({'message':'There is no related calendar to your school'})
+        else:
+            token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
+            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            with open(token_path, "w") as token:
+                token.write(creds.to_json())
+
+            try:
+                # Initialize Google Calendar API service
+                service = build("calendar", "v3", credentials=creds)
+
+                # Call the Calendar API
+                now = datetime.datetime.now().isoformat() + "Z"  # 'Z' indicates UTC time
+                print("Getting the upcoming 10 events")
+                events_result = (
+                    service.events()
+                    .list(
+                        calendarId="primary",
+                        timeMin=now,
+                        maxResults=10,
+                        singleEvents=True,
+                        orderBy="startTime",
+                    )
+                    .execute()
+                )
+                events = events_result.get("items", [])
+
+                if not events:
+                    return Response({"message": "No upcoming events found!"})
+
+                # Prints the start and name of the next 10 events
+                for event in events:
+                    start = event["start"].get("dateTime", event["start"].get("date"))
+                    print(start, event["summary"])
+                calendar_list = service.calendarList().list().execute()
+                primary_calendar = next((cal for cal in calendar_list['items'] if cal.get('primary')), None)
+                calendar_id = None
+                if primary_calendar:
+                    calendar_id =  primary_calendar['id']  # This is the calendar ID for the primary calendar
+                else:
+                    raise AuthenticationFailed("Primary calendar not found.")
+                calendar_url = f"https://calendar.google.com/calendar/embed?src={calendar_id}&mode=AGENDA"
+                webbrowser.open(calendar_url)
+                return Response({"message":"It was done successfully"})
+
+            except:
+                return Response({"message":"An error occurred"})

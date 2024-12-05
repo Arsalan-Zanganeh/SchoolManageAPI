@@ -8,7 +8,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
     StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
-    QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent
+    QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, PrinicipalCalendar
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -583,4 +583,9 @@ class HomeWorkTeacherSerializer(serializers.ModelSerializer):
 class HomeWorkStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeWorkStudent
+        fields = '__all__'
+
+class PrinicipalCalendarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrinicipalCalendar
         fields = '__all__'
