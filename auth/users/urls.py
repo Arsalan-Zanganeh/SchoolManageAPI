@@ -16,7 +16,7 @@ from .views import RegisterView, LoginView, UserView, LogoutView, AddStudentView
     StudentfinishExam, RecordToStudent, StudentShowRecord, StudentShowAnswers, HallandSubmitRecord, \
     HallandRecordsView, TeacherClassStudentView, TeacherEnterClass, StudentEnterClass, StudentSeeHomeworkRecords, \
     StudentSendHomework, StudentSeeHomeworks, TeacherAllHomeWorks, TeacherPublishHomeWork, TeacherDeleteHomeWork, \
-    TeacherEditHomeWork, TeacherAddHomeWork, PrinicipalCalendarView, StudentCalendarView
+    TeacherEditHomeWork, TeacherAddHomeWork, PrinicipalCalendarView, StudentCalendarView, StudentExtraFinish
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -87,4 +87,5 @@ urlpatterns = [
     path('teacher-add-homework/', TeacherAddHomeWork.as_view()),
     path('prinicipal-google-calendar/', PrinicipalCalendarView.as_view()),
     path('student-google-calendar/', StudentCalendarView.as_view()),
+    path('student-extra-finish/', StudentExtraFinish.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
