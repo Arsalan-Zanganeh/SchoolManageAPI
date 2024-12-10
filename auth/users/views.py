@@ -18,7 +18,8 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     ResetPasswordEmailRequestSerializer, SetNewPasswordSerializer, CreateNewQuizSerializer, \
     TeacherQuizSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
-    HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer, PrinicipalCalendarSerializer
+    HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer, PrinicipalCalendarSerializer, \
+    QuizQuestionStudentSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
@@ -1420,6 +1421,43 @@ class StudentShowRecord(APIView):
             serializer = StudentQuizRecordSerializer(records)
             return Response(serializer.data)
         return Response({'message':'it is not valid to show your records'})
+
+class QuizQuestionStudentView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!!!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        token = request.COOKIES.get('class')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!!!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(pk=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        quiz = QuizTeacher.objects.filter(id=request.data['QuizTeacher_ID']).first()
+        if not quiz:
+            raise AuthenticationFailed("There is no such a quiz")
+
+        studentAnswers = QuizQuestionStudent.objects.filter(QuizQuestion__QuizTeacher=quiz, Student=student).all()
+        serializer = QuizQuestionStudentSerializer(studentAnswers, many=True)
+        return Response(serializer.data)
 
 class StudentShowAnswers(APIView):
     def post(self, request):
