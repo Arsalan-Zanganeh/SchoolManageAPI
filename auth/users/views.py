@@ -1204,7 +1204,7 @@ class StudentQuizView(APIView):
         if not myclass:
             raise AuthenticationFailed("there is no such a student")
 
-        quizzes = QuizTeacher.objects.filter(Classes=myclass).all()
+        quizzes = QuizTeacher.objects.filter(Classes=myclass, Is_Published=True).all()
         serializer = TeacherQuizSerializer(quizzes, many=True)
         return Response(serializer.data)
 
@@ -1404,17 +1404,13 @@ class StudentShowAnswers(APIView):
         if not student:
             raise AuthenticationFailed("There is no such a teacher")
         # quiz2 = QuizStudent.objects.filter(Student=student, id=request.data['QuizStudent_ID']).first()
-        quiz = quiz2.QuizTeacher
+        quiz = QuizTeacher.objects.filter(id=request.data['QuizTeacher_ID']).first()
         if not quiz:
             raise AuthenticationFailed("No such a quiz")
 
         noww = datetime.datetime.now()
         validAfter = quiz.OpenTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
         if noww > validAfter:
-            questions = QuizQuestion.objects.filter(QuizTeacher=quiz).all()
-            serializer = AddQuizQuestionSerializer(questions, many=True)
-            return Response(serializer.data)
-        elif quiz.ShowDegreeAfterExam:
             questions = QuizQuestion.objects.filter(QuizTeacher=quiz).all()
             serializer = AddQuizQuestionSerializer(questions, many=True)
             return Response(serializer.data)
