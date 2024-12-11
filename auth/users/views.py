@@ -1456,6 +1456,8 @@ class StudentShowRecord(APIView):
             raise AuthenticationFailed("Exam is not started yet")
         if noww > validAfter:
             records = QuizStudentRecord.objects.filter(QuizTeacher = quiz, Student=student).first()
+            if not records:
+                raise AuthenticationFailed("There is no such a record")
             serializer = StudentQuizRecordSerializer(records)
             return Response(serializer.data)
         return Response({'message':'it is not valid to show your records'})
