@@ -23,7 +23,7 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
-    PrinicipalCalendar
+    PrinicipalCalendar, SchoolTeachers
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -162,9 +162,25 @@ class AddTeacherView(APIView):
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Expired token!")
 
+        token = request.COOKIES.get('school')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+        payload = None
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        if not school:
+            raise AuthenticationFailed("School not found!")
+
         serializer = TeacherSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        teacher = Teacher.objects.filter(National_ID=request.data['National_ID']).first()
+        myobj = SchoolTeachers.objects.create(School=school, Teacher=teacher)
+        myobj.save()
         return Response(serializer.data)
 
 class AddSchoolView(APIView):
@@ -796,11 +812,33 @@ class NotificationStudentView(APIView):
         if not student:
             raise AuthenticationFailed("Student not found!")
         notif = NotificationStudent.objects.filter(student=student, archive=False).all()
-        for notific in notif:
-            notific.seen=True
-            notific.save()
+        # for notific in notif:
+        #     notific.seen=True
+        #     notific.save()
         serializer = NotificationStudentSerializer(notif, many=True)
         return Response(serializer.data)
+
+class NotificationStudentSingleSeen(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("Student not found!")
+        notif = NotificationStudent.objects.filter(student=student, archive=False, pk=request.data['id']).first()
+        if not notif:
+            raise AuthenticationFailed("notif not found!")
+        notif.seen=True
+        notif.save()
+        return Response({'message':'you have seen your message'})
 
 class NotificationUnseenCountStudentView(APIView):
     def get(self, request):
@@ -1883,6 +1921,18 @@ class PrinicipalCalendarView(APIView):
                 credentials_path, SCOPES
             )
             creds = flow.run_local_server(port=0)
+            mymodel.is_valid=True
+            mymodel.save()
+            with open(token_path, "w") as token:
+                token.write(creds.to_json())
+        elif not mymodel.is_valid:
+            token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
+            flow = InstalledAppFlow.from_client_secrets_file(
+                credentials_path, SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+            mymodel.is_valid=True
+            mymodel.save()
             with open(token_path, "w") as token:
                 token.write(creds.to_json())
 
@@ -1892,8 +1942,8 @@ class PrinicipalCalendarView(APIView):
 
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        with open(token_path, "w") as token:
-            token.write(creds.to_json())
+            with open(token_path, "w") as token:
+                token.write(creds.to_json())
 
         try:
             # Initialize Google Calendar API service
@@ -1915,8 +1965,6 @@ class PrinicipalCalendarView(APIView):
             )
             events = events_result.get("items", [])
 
-            if not events:
-                return Response({"message": "No upcoming events found!"})
 
             # Prints the start and name of the next 10 events
             for event in events:
@@ -1965,8 +2013,8 @@ class StudentCalendarView(APIView):
 
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
-            with open(token_path, "w") as token:
-                token.write(creds.to_json())
+                with open(token_path, "w") as token:
+                    token.write(creds.to_json())
 
             try:
                 # Initialize Google Calendar API service
@@ -1988,9 +2036,6 @@ class StudentCalendarView(APIView):
                 )
                 events = events_result.get("items", [])
 
-                if not events:
-                    return Response({"message": "No upcoming events found!"})
-
                 # Prints the start and name of the next 10 events
                 for event in events:
                     start = event["start"].get("dateTime", event["start"].get("date"))
@@ -2008,3 +2053,42 @@ class StudentCalendarView(APIView):
 
             except:
                 return Response({"message":"An error occurred"})
+
+class SchoolTeachersView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('school')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        teachers = SchoolTeachers.objects.filter(School=school).values_list('Teacher__National_ID', flat=True)
+        teachers_data = Teacher.objects.filter(National_ID__in=teachers)
+        serializer = TeacherSerializer(teachers_data, many=True)
+        return Response(serializer.data)
+
+class TeacherIdtoInfo(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        principal = User.objects.filter(National_ID=payload['National_ID']).first()
+        if (not student) and (not principal):
+            raise AuthenticationFailed("You should be at least a student or principal to view this")
+
+        teacher = Teacher.objects.filter(id=request.data['id']).first()
+        serializer = TeacherSerializer(teacher)
+        return Response(serializer.data)

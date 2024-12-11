@@ -273,6 +273,7 @@ class HomeWorkStudent(models.Model):
 class PrinicipalCalendar(models.Model):
     School = models.ForeignKey(School, on_delete=models.CASCADE)
     gtoken = models.FileField(upload_to='profile_image/', blank=True, null=True)
+    is_valid = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         # Check if the instance is being created (no primary key yet)
@@ -281,3 +282,10 @@ class PrinicipalCalendar(models.Model):
         if is_new and not self.gtoken:
             # Save an empty token.json file after the instance is saved
             self.gtoken.save('token.json', ContentFile(''))
+
+class SchoolTeachers(models.Model):
+    School = models.ForeignKey(School, on_delete=models.CASCADE)
+    Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('School', 'Teacher')
