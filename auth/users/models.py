@@ -289,3 +289,11 @@ class SchoolTeachers(models.Model):
 
     class Meta:
         unique_together = ('School', 'Teacher')
+
+class StudentAttendance(models.Model):
+    ClassStudent = models.ForeignKey(ClassStudent, on_delete=models.CASCADE)
+    Date = models.DateField()
+    Absent = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('ClassStudent', 'Date')

@@ -93,5 +93,5 @@ urlpatterns = [
     path('student-quiz-finished-boolean/', QuizFinishedBoolean.as_view()),
     path('student-single-notif-seen/', NotificationStudentSingleSeen.as_view()),
     path('school-teachers/', SchoolTeachersView.as_view()),
-    path('othersides-watch-teacher-info/', TeacherIdtoInfo.as_view())
+    path('othersides-watch-teacher-info/', TeacherIdtoInfo.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

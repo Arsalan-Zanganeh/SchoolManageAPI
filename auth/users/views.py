@@ -1530,7 +1530,7 @@ class QuizFinishedBoolean(APIView):
         if not quiz:
             raise AuthenticationFailed("There is no such a quiz")
 
-        qs = QuizStudentRecord.objects.filter(QuizTeacher=quiz).first()
+        qs = QuizStudentRecord.objects.filter(QuizTeacher=quiz, Student=student).first()
         if not qs:
             return Response({'boolean':False})
         return Response({'boolean':True})
@@ -2068,7 +2068,7 @@ class SchoolTeachersView(APIView):
 
         school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
         teachers = SchoolTeachers.objects.filter(School=school).values_list('Teacher__National_ID', flat=True)
-        teachers_data = Teacher.objects.filter(National_ID__in=teachers)
+        teachers_data = Teacher.objects.filter(National_ID__in=teachers).all()
         serializer = TeacherSerializer(teachers_data, many=True)
         return Response(serializer.data)
 

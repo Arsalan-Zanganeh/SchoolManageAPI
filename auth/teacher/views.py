@@ -3,8 +3,8 @@ from django.shortcuts import render
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.serializers import TeacherSerializer, ClassSerializer
-from users.models import Teacher, ClassStudent, Classes
+from users.serializers import TeacherSerializer, ClassSerializer, StudentSerializer, AttendanceFormSerializer
+from users.models import Teacher, ClassStudent, Classes, Student, StudentAttendance
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -88,3 +88,139 @@ class TeacherClassesView(APIView):
         serializer = ClassSerializer(classes, many=True)
         return Response(serializer.data)
 
+
+class TeacherClassStudentsView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no teacher with this National_ID")
+
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            return Response({"message":"There is no class with this National_ID"})
+
+        students1 = ClassStudent.objects.filter(Classes=myclass).values_list('Student__National_ID', flat=True)
+        students2 = Student.objects.filter(National_ID__in=students1)
+        serializer = StudentSerializer(students2, many=True)
+        return Response(serializer.data)
+
+class TeacherCheckStudentAttendance(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no teacher with this National_ID")
+
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            return Response({"message":"There is no class with this information"})
+
+        student = Student.objects.filter(National_ID=request.data['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no student with this National_ID")
+
+        classStudent = ClassStudent.objects.filter(Classes=myclass, Student=student).first()
+        if not classStudent:
+            return Response({"message":"There is no class with this information"})
+
+        myobj = StudentAttendance.objects.filter(ClassStudent=classStudent, Date=request.data['Date']).first()
+        if not myobj:
+            myobj2 = StudentAttendance.objects.create(ClassStudent=classStudent, Date=request.data['Date'], Absent=request.data['Absent'])
+            myobj2.save()
+        else:
+            myobj.Absent = request.data['Absent']
+            myobj.save()
+        if request.data['Absent'] == True:
+            return Response({"message":"Absent"})
+        return Response({"message":"Present"})
+
+class TeacherWatchAttendance(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no teacher with this National_ID")
+
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            return Response({"message":"There is no class with this information"})
+
+        classStudent = ClassStudent.objects.filter(Classes=myclass).first()
+        if not classStudent:
+            return Response({"message":"There is no class with this information"})
+
+        myobj = StudentAttendance.objects.filter(ClassStudent=classStudent, Date=request.data['Date']).first()
+        if not myobj:
+            myvals = ClassStudent.objects.filter(Classes=myclass).values_list('Student__National_ID', flat=True)
+            students = Student.objects.filter(National_ID__in=myvals).all()
+            for student in students:
+                myclassStudent = ClassStudent.objects.filter(Classes=myclass, Student=student).first()
+                myobj2 = StudentAttendance.objects.create(ClassStudent=myclassStudent, Date=request.data['Date'])
+                myobj2.save()
+            mydata = StudentAttendance.objects.filter(ClassStudent__Classes=myclass, Date=request.data['Date']).all()
+            serializer = AttendanceFormSerializer(mydata, many=True)
+            return Response(serializer.data)
+        mydata = StudentAttendance.objects.filter(ClassStudent__Classes=myclass, Date=request.data['Date']).all()
+        serializer = AttendanceFormSerializer(mydata, many=True)
+        return Response(serializer.data)

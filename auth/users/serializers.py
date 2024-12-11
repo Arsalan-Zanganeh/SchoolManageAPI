@@ -590,3 +590,9 @@ class PrinicipalCalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrinicipalCalendar
         fields = '__all__'
+
+class AttendanceFormSerializer(serializers.Serializer):
+    National_ID = serializers.CharField(source='ClassStudent.Student.National_ID')
+    first_name  = serializers.CharField(source='ClassStudent.Student.first_name')
+    last_name = serializers.CharField(source='ClassStudent.Student.last_name')
+    Absent = serializers.CharField()
