@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.forms import BooleanField
 from django.core.files.base import ContentFile
+from rest_framework.views import APIView
 
 
 class MyUserManager(BaseUserManager):
@@ -297,3 +298,11 @@ class StudentAttendance(models.Model):
 
     class Meta:
         unique_together = ('ClassStudent', 'Date')
+
+class DisciplinaryScore(models.Model):
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    Grade = models.IntegerField()
+
+class DisciplinaryCase(models.Model):
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    Case = models.CharField()

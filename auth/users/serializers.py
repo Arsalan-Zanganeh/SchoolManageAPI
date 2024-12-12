@@ -596,3 +596,17 @@ class AttendanceFormSerializer(serializers.Serializer):
     first_name  = serializers.CharField(source='ClassStudent.Student.first_name')
     last_name = serializers.CharField(source='ClassStudent.Student.last_name')
     Absent = serializers.CharField()
+
+class DisciplinaryScoreSerializer(serializers.Serializer):
+    National_ID = serializers.CharField(source='Student.National_ID')
+    first_name  = serializers.CharField(source='Student.first_name')
+    last_name = serializers.CharField(source='Student.last_name')
+    Grade = serializers.IntegerField()
+
+class DisciplinaryCaseSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    National_ID = serializers.CharField(source='Student.National_ID')
+    first_name  = serializers.CharField(source='Student.first_name')
+    last_name = serializers.CharField(source='Student.last_name')
+    Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')
+    Case = serializers.CharField()

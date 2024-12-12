@@ -19,11 +19,11 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
     TeacherQuizSerializer, StudentSetNewPasswordSerializer, \
     TeacherSetNewPasswordSerializer, AddQuizQuestionSerializer, StudentQuestionSerializer, StudentQuizRecordSerializer, \
     HallandAPISerializer, HomeWorkTeacherSerializer, HomeWorkStudentSerializer, PrinicipalCalendarSerializer, \
-    QuizQuestionStudentSerializer
+    QuizQuestionStudentSerializer, DisciplinaryScoreSerializer
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
-    PrinicipalCalendar, SchoolTeachers
+    PrinicipalCalendar, SchoolTeachers, DisciplinaryScore
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -148,6 +148,8 @@ class AddStudentView(APIView):
         student = Student.objects.filter(National_ID=request.data["National_ID"]).first()
         prof = StudentProfile.objects.create(student=student)
         prof.save()
+        discip = DisciplinaryScore.objects.create(Student=student, Grade=100)
+        discip.save()
         return Response(serializer.data)
 
 class AddTeacherView(APIView):
