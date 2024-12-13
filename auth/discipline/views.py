@@ -168,7 +168,6 @@ class DisciplinaryCaseDelete(APIView):
 
         student = DisciplinaryCase.objects.filter(id=request.data['id']).first()
         student.delete()
-        student.save()
         return Response({'message':'your case was deleted successfully!'})
 
 class StudentsofSchool(APIView):
