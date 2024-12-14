@@ -610,3 +610,8 @@ class DisciplinaryCaseSerializer(serializers.Serializer):
     last_name = serializers.CharField(source='Student.last_name')
     Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')
     Case = serializers.CharField()
+
+class StudentHomeworkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HomeWorkStudent
+        fields = '__all__'

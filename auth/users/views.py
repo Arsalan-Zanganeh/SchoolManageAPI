@@ -1874,11 +1874,18 @@ class StudentSendHomework(APIView):
             raise AuthenticationFailed("There is no such a student")
 
         homeworkteacher = HomeWorkTeacher.objects.filter(id=request.data['Homework_ID']).first()
-        studenthomework = HomeWorkStudent.objects.create(HomeWorkTeacher=homeworkteacher, Student=student,
+        nanay = HomeWorkStudent.objects.filter(HomeWorkTeacher=homeworkteacher, Student=student).first()
+        if not nanay:
+            studenthomework = HomeWorkStudent.objects.create(HomeWorkTeacher=homeworkteacher, Student=student,
                                                          SendingTime=datetime.datetime.now(),
                                                          HomeWorkAnswer=request.data['HomeWorkAnswer'])
-        studenthomework.save()
-        serializer = HomeWorkStudentSerializer(studenthomework)
+            studenthomework.save()
+            serializer = HomeWorkStudentSerializer(studenthomework)
+            return Response(serializer.data)
+        nanay.SendingTime = datetime.datetime.now()
+        nanay.HomeWorkAnswer = request.data['HomeWorkAnswer']
+        nanay.save()
+        serializer = HomeWorkStudentSerializer(nanay)
         return Response(serializer.data)
 
 class StudentSeeHomeworkRecords(APIView):

@@ -270,6 +270,8 @@ class HomeWorkStudent(models.Model):
     HomeWorkAnswer = models.FileField(upload_to='profile_image/', blank=True, null=True)
     SendingTime = models.DateTimeField(default=datetime.datetime.now)
     HomeWorkTeacher = models.ForeignKey(HomeWorkTeacher, on_delete=models.CASCADE, related_name='HomeWorkStudent')
+    Grade = models.IntegerField(null=True, blank=True)
+    Graded = models.BooleanField(default=False)
 
 class PrinicipalCalendar(models.Model):
     School = models.ForeignKey(School, on_delete=models.CASCADE)
