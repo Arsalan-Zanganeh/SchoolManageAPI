@@ -4,9 +4,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import DisciplinaryScoreSerializer, DisciplinaryCaseSerializer, StudentSerializer, \
-    StudentHomeworkSerializer
+    StudentHomeworkSerializer, ECFileSerializer, ECVideoSerializer
 from users.models import DisciplinaryScore, User, School, DisciplinaryCase, Student, Teacher, Classes, HomeWorkStudent, \
-     HomeWorkTeacher
+     HomeWorkTeacher, ECFile, ECVideo
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -283,3 +283,268 @@ class TeacherAddChangeHomeworkGrade(APIView):
         serializer = StudentHomeworkSerializer(myhomeworkscore)
         return Response(serializer.data)
 
+class TeacherAddFileEducationalContent(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECFile.objects.create(Classes=myclass,file=request.data['file'])
+        obj.save()
+        serializer = ECFileSerializer(obj)
+        return Response(serializer.data)
+
+class TeacherDeleteFileEducationalContent(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECFile.objects.filter(id=request.data['id']).first()
+        obj.delete()
+        return Response({'message':'it was deleted successfully'})
+
+class TeacherWatchFileEducationalContent(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECFile.objects.filter(Classes=myclass).all()
+        serializer = ECFileSerializer(obj, many=True)
+        return Response(serializer.data)
+
+class TeacherAddVideoEducationalContent(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECVideo.objects.create(Classes=myclass,src=request.data['src'])
+        obj.save()
+        serializer = ECVideoSerializer(obj)
+        return Response(serializer.data)
+
+class TeacherDeleteVideoEducationalContent(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECVideo.objects.filter(id=request.data['id']).first()
+        obj.delete()
+        return Response({'message':'it was deleted successfully'})
+
+class TeacherWatchVideoEducationalContent(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(Teacher=teacher, id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECVideo.objects.filter(Classes=myclass).all()
+        serializer = ECVideoSerializer(obj, many=True)
+        return Response(serializer.data)
+
+class StudentWatchVideoEducationalContent(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECVideo.objects.filter(Classes=myclass).all()
+        serializer = ECVideoSerializer(obj, many=True)
+        return Response(serializer.data)
+
+class StudentWatchFileEducationalContent(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = ECFile.objects.filter(Classes=myclass).all()
+        serializer = ECFileSerializer(obj, many=True)
+        return Response(serializer.data)

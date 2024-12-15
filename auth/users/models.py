@@ -308,3 +308,11 @@ class DisciplinaryScore(models.Model):
 class DisciplinaryCase(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     Case = models.CharField()
+
+class ECFile(models.Model):
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='profile_image/', blank=True, null=True)
+
+class ECVideo(models.Model):
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    src = models.CharField(blank=True, null=True)
