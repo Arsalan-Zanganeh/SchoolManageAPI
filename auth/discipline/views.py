@@ -4,9 +4,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import DisciplinaryScoreSerializer, DisciplinaryCaseSerializer, StudentSerializer, \
-    StudentHomeworkSerializer, ECFileSerializer, ECVideoSerializer
+    StudentHomeworkSerializer, ECFileSerializer, ECVideoSerializer, StudentPlanningSerializer, TeacherFeedbackSerializer
 from users.models import DisciplinaryScore, User, School, DisciplinaryCase, Student, Teacher, Classes, HomeWorkStudent, \
-     HomeWorkTeacher, ECFile, ECVideo
+     HomeWorkTeacher, ECFile, ECVideo, StudentPlanning, TeacherFeedback
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -547,4 +547,169 @@ class StudentWatchFileEducationalContent(APIView):
 
         obj = ECFile.objects.filter(Classes=myclass).all()
         serializer = ECFileSerializer(obj, many=True)
+        return Response(serializer.data)
+
+class StudentAddPlan(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+        mydata = request.data
+        mydata['Student']=student.pk
+        serializer = StudentPlanningSerializer(data=mydata)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class StudentWatchPlans(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        obj = StudentPlanning.objects.filter(Student=student).all()
+        serializer = StudentPlanningSerializer(obj, many=True)
+        return Response(serializer.data)
+
+class StudentDeletePlan(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+        obj = StudentPlanning.objects.filter(Student=student, id=request.data['id']).first()
+        if not obj:
+            raise AuthenticationFailed("There is no such a plan id with this student")
+        obj.delete()
+        return Response({'message':'the plan was deleted successfully'})
+
+class TeacherWatchStudentPlans(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+        obj = StudentPlanning.objects.filter(Student=request.data['Student_ID']).all()
+        serializer = StudentPlanningSerializer(obj, many=True)
+        return Response(serializer.data)
+
+class TeacherAddFeedback(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+        plan = StudentPlanning.objects.filter(id=request.data['StudentPlanning_ID']).first()
+        if not plan:
+            raise AuthenticationFailed("There is no such a plan")
+        plan.feedbackCount += 1
+        plan.save()
+        feedback = TeacherFeedback.objects.create(StudentPlanning=plan,
+                                                  Teacher=teacher,
+                                                  Feedback=request.data['Feedback'])
+
+        feedback.save()
+        serializer = TeacherFeedbackSerializer(feedback)
+        return Response(serializer.data)
+
+class TeacherDeleteFeedback(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+        feedback = TeacherFeedback.objects.filter(id=request.data['TeacherFeedback_ID'], Teacher=teacher).first()
+        if not feedback:
+            raise AuthenticationFailed("There is no such a feedback")
+        plan = feedback.StudentPlanning
+        plan.feedbackCount -= 1
+        plan.save()
+        feedback.delete()
+        return Response({'message':'feedback deleted'})
+
+class TeacherWatchFeedbacks(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+        plan = StudentPlanning.objects.filter(id=request.data['StudentPlanning_ID']).first()
+        if not plan:
+            raise AuthenticationFailed("There is no such a plan")
+        plan.feedbackCount += 1
+        plan.save()
+        feedback = TeacherFeedback.objects.filter(StudentPlanning=plan, Teacher=teacher).all()
+        serializer = TeacherFeedbackSerializer(feedback, many=True)
         return Response(serializer.data)

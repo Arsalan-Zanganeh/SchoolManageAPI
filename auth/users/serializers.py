@@ -9,7 +9,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
     StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
     QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, PrinicipalCalendar, \
-    QuizQuestionStudent, ECFile, ECVideo
+    QuizQuestionStudent, ECFile, ECVideo, StudentPlanning, TeacherFeedback
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -625,3 +625,14 @@ class ECVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ECVideo
         fields = '__all__'
+
+class StudentPlanningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentPlanning
+        fields = '__all__'
+
+class TeacherFeedbackSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    Teacher_First_Name = serializers.CharField(source='Teacher.first_name')
+    Teacher_Last_Name = serializers.CharField(source='Teacher.last_name')
+    Feedback = serializers.CharField()

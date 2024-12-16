@@ -3,7 +3,9 @@ from .views import DisciplineScoreChange, DisciplineScoreList, DisciplinaryCaseL
     DisciplinaryCaseDelete, StudentsofSchool, TeacherWatchStudentHomeworkAnswers, \
     TeacherAddChangeHomeworkGrade, TeacherAddFileEducationalContent, TeacherDeleteFileEducationalContent, \
     TeacherWatchFileEducationalContent, TeacherAddVideoEducationalContent, TeacherDeleteVideoEducationalContent, \
-    TeacherWatchVideoEducationalContent, StudentWatchVideoEducationalContent, StudentWatchFileEducationalContent
+    TeacherWatchVideoEducationalContent, StudentWatchVideoEducationalContent, StudentWatchFileEducationalContent, \
+    StudentAddPlan, StudentWatchPlans, StudentDeletePlan, TeacherWatchStudentPlans, TeacherAddFeedback, \
+    TeacherDeleteFeedback, TeacherWatchFeedbacks
 
 urlpatterns = [
     path('score-list/', DisciplineScoreList.as_view()),
@@ -22,4 +24,11 @@ urlpatterns = [
     path('teacher-watchvid-EC/', TeacherWatchVideoEducationalContent.as_view()),
     path('student-watchvid-EC/', StudentWatchVideoEducationalContent.as_view()),
     path('student-watchfile-EC/', StudentWatchFileEducationalContent.as_view()),
+    path('student-add-plan/', StudentAddPlan.as_view()),
+    path('student-watch-plans/', StudentWatchPlans.as_view()),
+    path('student-delete-plan/', StudentDeletePlan.as_view()),
+    path('teacher-watch-student-plans/', TeacherWatchStudentPlans.as_view()),
+    path('teacher-add-feed-back/', TeacherAddFeedback.as_view()),
+    path('teacher-delete-feedback/', TeacherDeleteFeedback.as_view()),
+    path('teacher-watch-feedbacks/', TeacherWatchFeedbacks.as_view()),
 ]

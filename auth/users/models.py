@@ -316,3 +316,16 @@ class ECFile(models.Model):
 class ECVideo(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
     src = models.CharField(blank=True, null=True)
+
+class StudentPlanning(models.Model):
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    StartDate = models.DateField()
+    Title =models.CharField(max_length=50)
+    Duration =models.IntegerField()
+    Explanation = models.CharField(max_length=50)
+    feedbackCount = models.IntegerField(default=0)
+
+class TeacherFeedback(models.Model):
+    StudentPlanning = models.ForeignKey(StudentPlanning, on_delete=models.CASCADE)
+    Feedback = models.CharField()
+    Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
