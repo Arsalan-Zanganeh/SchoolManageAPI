@@ -1691,13 +1691,17 @@ class TeacherDeleteHomeWork(APIView):
         if not teacher:
             raise AuthenticationFailed("There is no such a teacher")
 
-        mydata = request.data
-        myhomework = HomeWorkTeacher.objects.filter(Teacher=teacher, id=request.data['Homework_ID']).first()
+        if 'Homework_ID' not in request.data:
+            return Response({"error": "Homework_ID not provided"}, status=400)
+
+        homework_id = request.data['Homework_ID']
+        myhomework = HomeWorkTeacher.objects.filter(Teacher=teacher, id=homework_id).first()
         if not myhomework:
-            raise AuthenticationFailed("there is no such a homework")
+            return Response({"error": "There is no such a homework"}, status=404)
+
         myhomework.delete()
-        myhomework.save()
-        return Response({'message':'your homework was deleted successfully'})
+        return Response({'message': 'Your homework was deleted successfully'}, status=200)
+
 
 class TeacherPublishHomeWork(APIView):
     def post(selfself, request):

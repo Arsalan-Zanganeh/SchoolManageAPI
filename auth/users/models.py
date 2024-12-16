@@ -263,6 +263,7 @@ class HomeWorkTeacher(models.Model):
     Is_Published = models.BooleanField(default=False)
     Title = models.TextField()
     Description = models.TextField()
+    file = models.FileField(upload_to='profile_image/', blank=True, null=True)
     DeadLine = models.DateTimeField(blank=False, null=False)
 
 class HomeWorkStudent(models.Model):
