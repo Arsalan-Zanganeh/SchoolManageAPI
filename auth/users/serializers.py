@@ -111,13 +111,13 @@ class UserProfileCompleteViewSerializer(serializers.ModelSerializer):##
 class StudentSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    Parent_password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
 
     class Meta:
         model = Student
         fields = ['id', 'first_name', 'last_name', 'National_ID', 'Father_Phone_Number',
-                  'Father_first_name', 'Grade_Level', 'password',
-                  'password2', 'Address', 'LandLine', 'School','Email']
+                  'Father_first_name', 'Grade_Level', 'password', 'Parent_password',
+                  'Address', 'LandLine', 'School','Email']
 
     def validate(self, attrs):
         otherPrincipal = User.objects.filter(National_ID=attrs['National_ID']).first()
@@ -128,9 +128,9 @@ class StudentSerializer(serializers.ModelSerializer):
         if otherTecaher:
             raise serializers.ValidationError("A teacher registered with this National ID")
 
-        if attrs['password'] != attrs['password2']:
+        if attrs['password'] == attrs['Parent_password']:
             raise serializers.ValidationError(
-                {'password': 'Password fields do not match.'}
+                {'password': 'Password fields should be different.'}
             )
         if not re.match('^[0-9]{10}$', attrs['National_ID']):
             raise serializers.ValidationError(
@@ -183,6 +183,7 @@ class StudentSerializer(serializers.ModelSerializer):
             Address=validated_data['Address'],
             Grade_Level=validated_data['Grade_Level'],
             password=make_password(validated_data['password']),
+            Parent_password=make_password(validated_data['Parent_password']),
             Email=validated_data['Email']
         )
         student.save()
@@ -451,7 +452,7 @@ class NotificationSchoolSerializer(serializers.ModelSerializer):
 class NotificationStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationStudent
-        fields = ['date', 'student', 'seen', 'archive', 'message']
+        fields = ['id' ,'date', 'student', 'seen', 'archive', 'message']
 
 class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(min_length=2)
@@ -510,6 +511,10 @@ class StudentQuizRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizStudentRecord
         fields = '__all__'
+
+class ParentQuizRecordSerializer(serializers.Serializer):
+    Degree = serializers.FloatField()
+    Title = serializers.CharField(source='QuizTeacher.Title')
 
 class QuizQuestionStudentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -597,10 +602,23 @@ class AttendanceFormSerializer(serializers.Serializer):
     last_name = serializers.CharField(source='ClassStudent.Student.last_name')
     Absent = serializers.CharField()
 
+class AttendanceParentSerializer(serializers.Serializer):
+    Topic = serializers.CharField(source='ClassStudent.Classes.Topic')
+    # first_name  = serializers.CharField(source='ClassStudent.Student.first_name')
+    # last_name = serializers.CharField(source='ClassStudent.Student.last_name')
+    Date = serializers.DateField()
+    Absent = serializers.CharField()
+
 class DisciplinaryScoreSerializer(serializers.Serializer):
     National_ID = serializers.CharField(source='Student.National_ID')
     first_name  = serializers.CharField(source='Student.first_name')
     last_name = serializers.CharField(source='Student.last_name')
+    Grade = serializers.IntegerField()
+
+class ParentDisciplinaryScoreSerializer(serializers.Serializer):
+    # National_ID = serializers.CharField(source='Student.National_ID')
+    # first_name  = serializers.CharField(source='Student.first_name')
+    # last_name = serializers.CharField(source='Student.last_name')
     Grade = serializers.IntegerField()
 
 class DisciplinaryCaseSerializer(serializers.Serializer):
@@ -611,10 +629,23 @@ class DisciplinaryCaseSerializer(serializers.Serializer):
     Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')
     Case = serializers.CharField()
 
+class ParentDisciplinaryCaseSerializer(serializers.Serializer):
+    # id = serializers.IntegerField()
+    # National_ID = serializers.CharField(source='Student.National_ID')
+    # first_name  = serializers.CharField(source='Student.first_name')
+    # last_name = serializers.CharField(source='Student.last_name')
+    # Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')
+    Case = serializers.CharField()
+
 class StudentHomeworkSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomeWorkStudent
         fields = '__all__'
+
+class ParentHomeworkSerializer(serializers.Serializer):
+    Grade = serializers.IntegerField()
+    Graded = serializers.BooleanField()
+    Title = serializers.CharField(source='HomeWorkTeacher.Title')
 
 class ECFileSerializer(serializers.ModelSerializer):
     class Meta:

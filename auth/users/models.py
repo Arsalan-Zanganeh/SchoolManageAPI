@@ -122,6 +122,7 @@ class Student(models.Model):
     Grade_Level = models.CharField(max_length=20, choices=GradeLevel, blank=False)
     National_ID = models.CharField(max_length=10, unique=True)
     password = models.CharField(max_length=200)
+    Parent_password = models.CharField(max_length=200)
     Email = models.EmailField()
     is_active = models.BooleanField(default=True)
     last_login = models.DateTimeField(null=True, blank=True)
