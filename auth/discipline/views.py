@@ -8,6 +8,7 @@ from users.serializers import DisciplinaryScoreSerializer, DisciplinaryCaseSeria
 from users.models import DisciplinaryScore, User, School, DisciplinaryCase, Student, Teacher, Classes, HomeWorkStudent, \
      HomeWorkTeacher, ECFile, ECVideo, StudentPlanning, TeacherFeedback
 import jwt, datetime
+import re
 from django.contrib.auth.hashers import make_password, check_password
 
 
@@ -412,7 +413,14 @@ class TeacherAddVideoEducationalContent(APIView):
         if not myclass:
             raise AuthenticationFailed("There is no such a class")
 
-        obj = ECVideo.objects.create(Classes=myclass,src=request.data['src'])
+        pattern = r'^(https?://(www.)?youtube.com/embed/)'
+
+        # Check if the URL matches the pattern
+        valid_src = re.match(pattern, request.data['src'])
+        if not valid_src:
+            raise AuthenticationFailed("Invalid URL!")
+
+        obj = ECVideo.objects.create(Classes=myclass, src=request.data['src'], Title=request.data['Title'])
         obj.save()
         serializer = ECVideoSerializer(obj)
         return Response(serializer.data)

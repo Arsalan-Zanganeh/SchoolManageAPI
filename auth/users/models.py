@@ -318,6 +318,7 @@ class ECFile(models.Model):
 class ECVideo(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
     src = models.CharField(blank=True, null=True)
+    Title = models.CharField(blank=True, null=True)
 
 class StudentPlanning(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
