@@ -235,7 +235,20 @@ class ParentCheckStudentAttendance(APIView):
         if not student:
             raise AuthenticationFailed("There is no such a student")
 
-        obj = StudentAttendance.objects.filter(ClassStudent__Student=student).all()
+        token = request.COOKIES.get('class')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        obj = StudentAttendance.objects.filter(ClassStudent__Student=student, ClassStudent__Classes=myclass).all()
         serializer = AttendanceParentSerializer(obj, many=True)
         return Response(serializer.data)
 
