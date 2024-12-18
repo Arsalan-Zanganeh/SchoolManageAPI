@@ -323,8 +323,7 @@ class ECVideo(models.Model):
 
 class StudentPlanning(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    StartDate = models.DateField()
-    StartHour = models.IntegerField()
+    StartDate = models.DateTimeField()
     Title =models.CharField(max_length=50)
     Duration =models.IntegerField()
     Explanation = models.CharField(max_length=50)
