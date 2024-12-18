@@ -314,6 +314,7 @@ class DisciplinaryCase(models.Model):
 class ECFile(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
     file = models.FileField(upload_to='profile_image/', blank=True, null=True)
+    Title = models.CharField(blank=True, null=True)
 
 class ECVideo(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
@@ -323,6 +324,7 @@ class ECVideo(models.Model):
 class StudentPlanning(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     StartDate = models.DateField()
+    StartHour = models.IntegerField()
     Title =models.CharField(max_length=50)
     Duration =models.IntegerField()
     Explanation = models.CharField(max_length=50)

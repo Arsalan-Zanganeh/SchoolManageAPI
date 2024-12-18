@@ -313,7 +313,7 @@ class TeacherAddFileEducationalContent(APIView):
         if not myclass:
             raise AuthenticationFailed("There is no such a class")
 
-        obj = ECFile.objects.create(Classes=myclass,file=request.data['file'])
+        obj = ECFile.objects.create(Classes=myclass, file=request.data['file'], Title=request.data['Title'])
         obj.save()
         serializer = ECFileSerializer(obj)
         return Response(serializer.data)
