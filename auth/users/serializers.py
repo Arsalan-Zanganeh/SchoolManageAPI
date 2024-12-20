@@ -639,7 +639,7 @@ class ParentDisciplinaryCaseSerializer(serializers.Serializer):
 
 class StudentHomeworkSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    # Student = serializers.IntegerField()
+    Student = serializers.IntegerField(source='Student.id')
     HomeWorkAnswer = serializers.FileField()
     SendingTime = serializers.DateTimeField()
     # HomeWorkTeacher = serializers.IntegerField()
