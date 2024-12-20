@@ -226,10 +226,10 @@ class QuizTeacher(models.Model):
 class QuizQuestion(models.Model):
     QuizTeacher = models.ForeignKey(QuizTeacher, on_delete=models.CASCADE)
     Question = models.TextField()
-    Option1 = models.CharField()
-    Option2 = models.CharField()
-    Option3 = models.CharField()
-    Option4 = models.CharField()
+    Option1 = models.CharField(max_length=500)
+    Option2 = models.CharField(max_length=500)
+    Option3 = models.CharField(max_length=500)
+    Option4 = models.CharField(max_length=500)
     Answer = models.IntegerField()
     Explanation = models.TextField()
 
@@ -309,17 +309,17 @@ class DisciplinaryScore(models.Model):
 
 class DisciplinaryCase(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    Case = models.CharField()
+    Case = models.CharField(max_length=500)
 
 class ECFile(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
     file = models.FileField(upload_to='profile_image/', blank=True, null=True)
-    Title = models.CharField(blank=True, null=True)
+    Title = models.CharField(max_length=500,blank=True, null=True)
 
 class ECVideo(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
-    src = models.CharField(blank=True, null=True)
-    Title = models.CharField(blank=True, null=True)
+    src = models.CharField(max_length=500,blank=True, null=True)
+    Title = models.CharField(max_length=500,blank=True, null=True)
 
 class StudentPlanning(models.Model):
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
@@ -331,9 +331,9 @@ class StudentPlanning(models.Model):
 
 class TeacherFeedback(models.Model):
     StudentPlanning = models.ForeignKey(StudentPlanning, on_delete=models.CASCADE)
-    Feedback = models.CharField()
+    Feedback = models.CharField(max_length=500)
     Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
-
+    
 class PrincipalAddEvent(models.Model):
     start = models.DateTimeField(blank=False, null=False)
     end = models.DateTimeField(blank=False, null=False)

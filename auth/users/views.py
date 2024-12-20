@@ -33,7 +33,6 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
 
-import pytz
 import datetime
 import os.path
 import webbrowser
@@ -1212,124 +1211,7 @@ class StartQuizView(APIView):
             quiz.DurationMinute=request.data['DurationMinute']
             quiz.Is_Published=True
             quiz.save()
-
-            myschool = SchoolTeachers.objects.filter(Teacher=teacher).first()
-            if not myschool:
-                raise AuthenticationFailed("There is no teacher with this National_ID")
-            school = myschool.School
-            if not school:
-                raise AuthenticationFailed("There is no such a school for this teacher")
-
-            mymodel = PrinicipalCalendar.objects.filter(School=school).first()
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            credentials_path = os.path.join(current_dir, "../media/profile_image/credentials.json")
-            if not mymodel:
-                # mymodel = PrinicipalCalendar.objects.create(School=school)
-                # token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
-                # flow = InstalledAppFlow.from_client_secrets_file(
-                #     credentials_path, SCOPES
-                # )
-                # creds = flow.run_local_server(port=0)
-                # mymodel.is_valid=True
-                # mymodel.save()
-                # with open(token_path, "w") as token:
-                #     token.write(creds.to_json())
-                return Response({'message': 'Your quiz is visible to Students now'})
-            elif not mymodel.is_valid:
-                # token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
-                # flow = InstalledAppFlow.from_client_secrets_file(
-                #     credentials_path, SCOPES
-                # )
-                # creds = flow.run_local_server(port=0)
-                # mymodel.is_valid=True
-                # mymodel.save()
-                # with open(token_path, "w") as token:
-                #     token.write(creds.to_json())
-                return Response({'message': 'Your quiz is visible to Students now'})
-
-            mymodel = PrinicipalCalendar.objects.filter(School=school).first()
-            token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
-            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-                with open(token_path, "w") as token:
-                    token.write(creds.to_json())
-
-            try:
-                # Initialize Google Calendar API service
-                service = build("calendar", "v3", credentials=creds)
-                # Refer to the Python quickstart on how to setup the environment:
-                # https://developers.google.com/calendar/quickstart/python
-                # Change the scope to 'https://www.googleapis.com/auth/calendar' and delete any
-                # stored credentials.
-                pacific = pytz.timezone('Asia/Tehran')
-                quiz = QuizTeacher.objects.filter(Teacher=teacher, id=request.data['id']).first()
-                nanay = pacific.localize(quiz.OpenTime)
-                ended = nanay + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
-                Strstarted = nanay.isoformat()
-                Strended = ended.isoformat()
-                myclassStudents = ClassStudent.objects.filter(Classes=quiz.Classes).all()
-                emails = [{'email': student.Student.Email} for student in myclassStudents]
-
-                event = {
-                    'summary': quiz.Title,
-                    'description': '24 hours left for the your quiz to start',
-                    'start': {
-                        'dateTime': Strstarted,
-                        'timeZone': 'America/Los_Angeles',
-                    },
-                    'end': {
-                        'dateTime': Strended,
-                        'timeZone': 'America/Los_Angeles',
-                    },
-                    'attendees': emails,
-                    'reminders': {
-                        'useDefault': False,
-                        'overrides': [
-                            {'method': 'email', 'minutes': 24 * 60},
-                            {'method': 'popup', 'minutes': 10},
-                        ],
-                    },
-                }
-
-                event = service.events().insert(calendarId='primary', body=event).execute()
-
-                # # Call the Calendar API
-                # now = datetime.datetime.now().isoformat() + "Z"  # 'Z' indicates UTC time
-                # print("Getting the upcoming 10 events")
-                # events_result = (
-                #     service.events()
-                #     .list(
-                #         calendarId="primary",
-                #         timeMin=now,
-                #         maxResults=10,
-                #         singleEvents=True,
-                #         orderBy="startTime",
-                #     )
-                #     .execute()
-                # )
-                # events = events_result.get("items", [])
-                #
-                #
-                # # Prints the start and name of the next 10 events
-                # for event in events:
-                #     start = event["start"].get("dateTime", event["start"].get("date"))
-                #     print(start, event["summary"])
-                # calendar_list = service.calendarList().list().execute()
-                # primary_calendar = next((cal for cal in calendar_list['items'] if cal.get('primary')), None)
-                # calendar_id = None
-                # if primary_calendar:
-                #     calendar_id =  primary_calendar['id']  # This is the calendar ID for the primary calendar
-                # else:
-                #     raise AuthenticationFailed("Primary calendar not found.")
-                # calendar_url = f"https://calendar.google.com/calendar/u/0/r?cid="+str(calendar_id)
-                # webbrowser.open(calendar_url)
-                return Response({'message': 'Your quiz is visible to Students now'})
-
-            except:
-                return Response({"message": "An error occurred"})
-
+            return Response({'message':'Your quiz is visible to Students now'})
         else:
             return Response({'Error':'There is no such a quiz'})
 
@@ -1822,7 +1704,7 @@ class TeacherDeleteHomeWork(APIView):
 
 
 class TeacherPublishHomeWork(APIView):
-    def post(self, request):
+    def post(selfself, request):
         token = request.COOKIES.get('jwt')
         if not token:
             raise AuthenticationFailed("Unauthenticated!")
@@ -1848,124 +1730,7 @@ class TeacherPublishHomeWork(APIView):
             obj = HomeWorkStudent.objects.create(Student=myclassStudent.Student, HomeWorkTeacher=myhomework)
             obj.save()
 
-        myschool = SchoolTeachers.objects.filter(Teacher=teacher).first()
-        if not myschool:
-            raise AuthenticationFailed("There is no teacher with this National_ID")
-        school = myschool.School
-        if not school:
-            raise AuthenticationFailed("There is no such a school for this teacher")
-
-        mymodel = PrinicipalCalendar.objects.filter(School=school).first()
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        credentials_path = os.path.join(current_dir, "../media/profile_image/credentials.json")
-        if not mymodel:
-            # mymodel = PrinicipalCalendar.objects.create(School=school)
-            # token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
-            # flow = InstalledAppFlow.from_client_secrets_file(
-            #     credentials_path, SCOPES
-            # )
-            # creds = flow.run_local_server(port=0)
-            # mymodel.is_valid=True
-            # mymodel.save()
-            # with open(token_path, "w") as token:
-            #     token.write(creds.to_json())
-            return Response({'message': 'Your homework is visible to students now'})
-        elif not mymodel.is_valid:
-            # token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
-            # flow = InstalledAppFlow.from_client_secrets_file(
-            #     credentials_path, SCOPES
-            # )
-            # creds = flow.run_local_server(port=0)
-            # mymodel.is_valid=True
-            # mymodel.save()
-            # with open(token_path, "w") as token:
-            #     token.write(creds.to_json())
-            return Response({'message': 'Your homework is visible to students now'})
-
-        mymodel = PrinicipalCalendar.objects.filter(School=school).first()
-        token_path = os.path.join(current_dir, "../media", str(mymodel.gtoken))
-        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            with open(token_path, "w") as token:
-                token.write(creds.to_json())
-
-        try:
-            # Initialize Google Calendar API service
-            service = build("calendar", "v3", credentials=creds)
-            # Refer to the Python quickstart on how to setup the environment:
-            # https://developers.google.com/calendar/quickstart/python
-            # Change the scope to 'https://www.googleapis.com/auth/calendar' and delete any
-            # stored credentials.
-            pacific = pytz.timezone('Asia/Tehran')
-            nanay = pacific.localize(myhomework.DeadLine)
-
-            started = nanay - datetime.timedelta(hours=1)
-            Strstarted = started.isoformat()
-            Strended = nanay.isoformat()
-
-            print(f"Start Time: {Strstarted}, End Time: {Strended}")
-
-            emails = [{'email': student.Student.Email} for student in myclassStudents]
-
-            event = {
-                'summary': myhomework.Title,
-                'description': myhomework.Description,
-                'start': {
-                    'dateTime': Strstarted,
-                    'timeZone': 'America/Los_Angeles',
-                },
-                'end': {
-                    'dateTime': Strended,
-                    'timeZone': 'America/Los_Angeles',
-                },
-                'attendees': emails,
-                'reminders': {
-                    'useDefault': False,
-                    'overrides': [
-                        {'method': 'email', 'minutes': 24 * 60},
-                        {'method': 'popup', 'minutes': 10},
-                    ],
-                },
-            }
-
-            event = service.events().insert(calendarId='primary', body=event).execute()
-
-            # # Call the Calendar API
-            # now = datetime.datetime.now().isoformat() + "Z"  # 'Z' indicates UTC time
-            # print("Getting the upcoming 10 events")
-            # events_result = (
-            #     service.events()
-            #     .list(
-            #         calendarId="primary",
-            #         timeMin=now,
-            #         maxResults=10,
-            #         singleEvents=True,
-            #         orderBy="startTime",
-            #     )
-            #     .execute()
-            # )
-            # events = events_result.get("items", [])
-            #
-            #
-            # # Prints the start and name of the next 10 events
-            # for event in events:
-            #     start = event["start"].get("dateTime", event["start"].get("date"))
-            #     print(start, event["summary"])
-            # calendar_list = service.calendarList().list().execute()
-            # primary_calendar = next((cal for cal in calendar_list['items'] if cal.get('primary')), None)
-            # calendar_id = None
-            # if primary_calendar:
-            #     calendar_id =  primary_calendar['id']  # This is the calendar ID for the primary calendar
-            # else:
-            #     raise AuthenticationFailed("Primary calendar not found.")
-            # calendar_url = f"https://calendar.google.com/calendar/u/0/r?cid="+str(calendar_id)
-            # webbrowser.open(calendar_url)
-            return Response({"message":"It was done successfully"})
-
-        except:
-            return Response({"message":"An error occurred"})
+        return Response({'message': 'Your homework is visible to students now'})
 
 class TeacherAllHomeWorks(APIView):
     def get(self, request):
