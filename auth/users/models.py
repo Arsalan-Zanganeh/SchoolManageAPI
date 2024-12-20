@@ -218,7 +218,7 @@ class QuizTeacher(models.Model):
     Title = models.CharField(max_length=100)
     Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
-    OpenTime = models.DateTimeField()
+    OpenTime = models.DateTimeField(blank=False, null=False)
     DurationHour = models.IntegerField()
     DurationMinute = models.IntegerField()
     Is_Published = models.BooleanField(default=False)
@@ -333,3 +333,7 @@ class TeacherFeedback(models.Model):
     StudentPlanning = models.ForeignKey(StudentPlanning, on_delete=models.CASCADE)
     Feedback = models.CharField()
     Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+
+class PrincipalAddEvent(models.Model):
+    start = models.DateTimeField(blank=False, null=False)
+    end = models.DateTimeField(blank=False, null=False)
