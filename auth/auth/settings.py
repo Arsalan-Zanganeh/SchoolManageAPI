@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'student',
     'teacher',
     'discipline',
-    'chat',
     'channels',
 ]
 
@@ -79,12 +78,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'auth.wsgi.application'
-ASGI_APPLICATION = 'auth.asgi.application'
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': "channels.layers.InMemoryChannelLayer"
-        }
-    }
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
