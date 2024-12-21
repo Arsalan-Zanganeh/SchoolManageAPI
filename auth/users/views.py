@@ -1908,17 +1908,19 @@ class TeacherPublishHomeWork(APIView):
             print(f"Start Time: {Strstarted}, End Time: {Strended}")
 
             emails = [{'email': student.Student.Email} for student in myclassStudents]
+            for student in myclassStudents:
+                print(student.Student.Email)
 
             event = {
                 'summary': myhomework.Title,
                 'description': myhomework.Description,
                 'start': {
                     'dateTime': Strstarted,
-                    'timeZone': 'America/Los_Angeles',
+                    'timeZone': 'Asia/Tehran',
                 },
                 'end': {
                     'dateTime': Strended,
-                    'timeZone': 'America/Los_Angeles',
+                    'timeZone': 'Asia/Tehran',
                 },
                 'attendees': emails,
                 'reminders': {
