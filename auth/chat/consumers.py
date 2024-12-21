@@ -30,7 +30,6 @@ class ChatConsumer(WebsocketConsumer):
             decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             national_id = decoded.get("National_ID")
 
-
             account_user = AccountForChat.objects.get(user__National_ID=national_id)
             user = account_user.user
 
@@ -68,7 +67,6 @@ class ChatConsumer(WebsocketConsumer):
         return list(self.chat.messages.all().order_by('-timestamp').values(
             'content', 'sender__user__National_ID', 'timestamp'
         ))
-
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(

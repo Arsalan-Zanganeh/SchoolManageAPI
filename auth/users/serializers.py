@@ -106,7 +106,7 @@ class UserProfileCompleteViewSerializer(serializers.ModelSerializer):##
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", 'Phone_Number', 'UserProfile']
+        fields = ["first_name", "last_name", 'Phone_Number', 'email', 'UserProfile']
 
 class StudentSerializer(serializers.ModelSerializer):
 
@@ -417,7 +417,7 @@ class StudentProfileCompleteViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        fields = ["first_name", "last_name", "LandLine", "Address", "Grade_Level", "StudentProfile"]
+        fields = ["first_name", "last_name", "LandLine", "Address", "Grade_Level", 'Email', "StudentProfile"]
 
 class TeacherProfileOnlySerializer(serializers.ModelSerializer):
     class Meta:
@@ -442,7 +442,7 @@ class TeacherProfileCompleteViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
-        fields = ["first_name", "last_name", "Address", "TeacherProfile"]
+        fields = ["first_name", "last_name", "Address", "Email", "TeacherProfile"]
 
 class NotificationSchoolSerializer(serializers.ModelSerializer):
     class Meta:

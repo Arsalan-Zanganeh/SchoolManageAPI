@@ -337,3 +337,8 @@ class TeacherFeedback(models.Model):
 class PrincipalAddEvent(models.Model):
     start = models.DateTimeField(blank=False, null=False)
     end = models.DateTimeField(blank=False, null=False)
+
+class Message(models.Model):
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    sender = models.CharField(max_length=100)
+    message = models.TextField()
