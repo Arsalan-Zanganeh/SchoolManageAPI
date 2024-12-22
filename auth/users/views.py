@@ -476,7 +476,9 @@ class AddClassStudentView(APIView):
         request.data['Student'] = student.pk
         serializer = ClassStudentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        myAccount = AccountForChat.objects.create(student=student, account_type="student")
+        myAccount = AccountForChat.objects.filter(student=student, account_type="student").first()
+        if not myAccount:
+            myAccount = AccountForChat.objects.create(student=student, account_type="student")
         myAccount.save()
         myChat = Chat.objects.filter(classes=myclass).first()
         myAccount2 = AccountForChat.objects.filter(student=student).first()
