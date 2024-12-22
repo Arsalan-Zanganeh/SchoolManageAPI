@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .models import Chat, Message,AccountForChat
 from users.models import User, NotificationStudent
+from users.models import Student, Teacher
 import jwt
 from auth.settings import SECRET_KEY
 
@@ -29,26 +30,51 @@ class ChatConsumer(WebsocketConsumer):
             token = auth_header.split(' ')[1]
             decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             national_id = decoded.get("National_ID")
+            user = None
+            account_user = None
+            student = Student.objects.filter(National_ID=national_id).first()
+            if student:
+                user = student
+                account_user = AccountForChat.objects.get(student=student)
+            teacher = Teacher.objects.filter(National_ID=national_id).first()
+            if teacher:
+                user = teacher
+                account_user = AccountForChat.objects.get(teacher=teacher)
+            user2 = User.objects.filter(National_ID=national_id).first()
+            if user2:
+                user = user2
+                account_user = AccountForChat.objects.get(user=user2)
 
-            account_user = AccountForChat.objects.get(user__National_ID=national_id)
-            user = account_user.user
+           # account_user = AccountForChat.objects.get(user=user,teacher=teacher,student=student)
+           
+           
+
+            # if not account_user:
+            #     account_user = AccountForChat.objects.get(student__National_ID=national_id)
+            #     if not account_user:
+            #         account_user = AccountForChat.objects.get(teacher__National_ID=national_id)
+            #         user = account_user.teacher
+            #     else:
+            #         user = account_user.student
+            # else:
+            #     user = account_user.user
+
+            
+
 
             if user:
                 self.scope['user'] = user
                 self.scope['account_user'] = account_user
                 self.connected_users.add(user.National_ID)
             else:
-                self.send_error_and_close('You are not authenticated')
+                print("hello")
                 return
         else:
 
             self.send_error_and_close('You are not authenticated')
             return
         
-        if not self.chat.participants.filter(user__National_ID=user.National_ID).exists():
-
-            self.send_error_and_close('You are not a member of this chat')
-            return
+        
         
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
@@ -65,7 +91,7 @@ class ChatConsumer(WebsocketConsumer):
 
     def get_chat_messages(self):
         return list(self.chat.messages.all().order_by('-timestamp').values(
-            'content', 'sender__user__National_ID', 'timestamp'
+            'content', 'sender__student__National_ID','sender__teacher__National_ID', 'timestamp'
         ))
 
     def disconnect(self, close_code):
@@ -92,24 +118,31 @@ class ChatConsumer(WebsocketConsumer):
             content=message,
             sender=account_user
         )
-        
+        tmp = None
+        if db_message.sender.user:
+            tmp = db_message.sender.user.National_ID
+        if db_message.sender.student:
+            tmp = db_message.sender.student.National_ID
+        if db_message.sender.teacher:
+            tmp = db_message.sender.teacher.National_ID
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 "type": "chat_message", 
                 "message": db_message.content, 
-                "username": db_message.sender.user.National_ID,
+                "username": tmp,
                 "timestamp": db_message.timestamp.isoformat(),
             }
         )
         
-        for member in self.chat.participants.exclude(user__National_ID__in=self.connected_users):
-            NotificationStudent.objects.create(
-                message=f"New message in {self.chat_id} from {user.National_ID}",
-                student=member,
-                seen=False,
-                archive=False
-            )
+        # for member in self.chat.participants.exclude(user__National_ID__in=self.connected_users):
+        #     NotificationStudent.objects.create(
+        #         message=f"New message in {self.chat_id} from {tmp}",
+        #         student=member,
+        #         seen=False,
+        #         archive=False
+        #     )
+            
 
     def chat_message(self, event):
         self.send(text_data=json.dumps({

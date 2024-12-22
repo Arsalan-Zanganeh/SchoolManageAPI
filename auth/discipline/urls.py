@@ -5,7 +5,7 @@ from .views import DisciplineScoreChange, DisciplineScoreList, DisciplinaryCaseL
     TeacherWatchFileEducationalContent, TeacherAddVideoEducationalContent, TeacherDeleteVideoEducationalContent, \
     TeacherWatchVideoEducationalContent, StudentWatchVideoEducationalContent, StudentWatchFileEducationalContent, \
     StudentAddPlan, StudentWatchPlans, StudentDeletePlan, TeacherWatchStudentPlans, TeacherAddFeedback, \
-    TeacherDeleteFeedback, TeacherWatchFeedbacks
+    TeacherDeleteFeedback, TeacherWatchFeedbacks, WSGetID
 
 urlpatterns = [
     path('score-list/', DisciplineScoreList.as_view()),
@@ -31,4 +31,5 @@ urlpatterns = [
     path('teacher-add-feed-back/', TeacherAddFeedback.as_view()),
     path('teacher-delete-feedback/', TeacherDeleteFeedback.as_view()),
     path('teacher-watch-feedbacks/', TeacherWatchFeedbacks.as_view()),
+    path('WS-getid/', WSGetID.as_view()),
 ]

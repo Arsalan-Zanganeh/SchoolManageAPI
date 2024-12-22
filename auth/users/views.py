@@ -24,6 +24,8 @@ from .models import User, School, Classes, Teacher, ClassStudent, Student, UserP
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
     PrinicipalCalendar, SchoolTeachers, DisciplinaryScore
+from chat.models import AccountForChat
+from chat.models import Chat
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -357,9 +359,23 @@ class AddClassView(APIView):
         mydata['School'] = school.pk
         myteacher = Teacher.objects.filter(National_ID=mydata['National_ID']).first()
         mydata['Teacher']=myteacher.pk
+        teacherAccount = AccountForChat.objects.filter(teacher=myteacher).first()
+        if not teacherAccount:
+            teacherAccount = AccountForChat.objects.create(teacher=myteacher, account_type="teacher")
         serializer = ClassSerializer(data=mydata)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if serializer.is_valid(raise_exception=True):
+            myClass = Classes.objects.create(Teacher=myteacher,Topic=request.data['Topic']
+                        , Session1Day=request.data['Session1Day'], Session1Time=request.data['Session1Time']
+                        , Session2Day=request.data['Session2Day'], Session2Time=request.data['Session2Time']
+                        , School = school)
+            #myClass.save()
+        
+            # Retrieve the validated data
+            validated_data = serializer.validated_data
+            # Fetch the class instance using the validated `id`
+            myChat = Chat.objects.create(classes=myClass, title=Classes.Topic)
+            myChat.save()
+            myChat.participants.add(teacherAccount)
         return Response(serializer.data)
 
 class EditClassView(APIView):
@@ -460,8 +476,14 @@ class AddClassStudentView(APIView):
         request.data['Student'] = student.pk
         serializer = ClassStudentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        myAccount = AccountForChat.objects.create(student=student, account_type="student")
+        myAccount.save()
+        myChat = Chat.objects.filter(classes=myclass).first()
+        myAccount2 = AccountForChat.objects.filter(student=student).first()
+        myChat.participants.add(myAccount2)
         serializer.save()
         return Response(serializer.data)
+
 
 class ClassStudentView(APIView):
     def post(self, request):

@@ -1,9 +1,10 @@
 from django.db import models
 from users.models import User,Teacher,Student
 from django.core.exceptions import ValidationError
+from users.models import Classes
 
 class AccountForChat(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     account_type = models.CharField(max_length=10, choices=[('manager', 'Manager'), ('teacher', 'Teacher'), ('student', 'Student')])
     teacher = models.OneToOneField(Teacher, on_delete=models.CASCADE, null=True, blank=True)
     student = models.OneToOneField(Student, on_delete=models.CASCADE, null=True, blank=True)
@@ -21,7 +22,7 @@ class AccountForChat(models.Model):
 class Chat(models.Model):
     title = models.CharField(max_length=200)
     participants = models.ManyToManyField(AccountForChat, related_name='chats')
-
+    classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
     def __str__(self) -> str:
         return self.title
 

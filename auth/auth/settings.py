@@ -104,7 +104,7 @@ TEMPLATES = [
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
 #         'NAME': 'Projectdb',
 #         'USER': 'postgres',
-#         'PASSWORD': '123',
+#         'PASSWORD': 'amirali131022',
 #         'HOST': 'localhost',
 #         'PORT': '5432',
 #     }}

@@ -7,6 +7,7 @@ from users.serializers import DisciplinaryScoreSerializer, DisciplinaryCaseSeria
     StudentHomeworkSerializer, ECFileSerializer, ECVideoSerializer, StudentPlanningSerializer, TeacherFeedbackSerializer
 from users.models import DisciplinaryScore, User, School, DisciplinaryCase, Student, Teacher, Classes, HomeWorkStudent, \
      HomeWorkTeacher, ECFile, ECVideo, StudentPlanning, TeacherFeedback
+from chat.models import Chat
 import jwt, datetime
 import re
 from django.contrib.auth.hashers import make_password, check_password
@@ -721,3 +722,18 @@ class TeacherWatchFeedbacks(APIView):
         feedback = TeacherFeedback.objects.filter(StudentPlanning=plan, Teacher=teacher).all()
         serializer = TeacherFeedbackSerializer(feedback, many=True)
         return Response(serializer.data)
+class WSGetID(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('class')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        myChat = Chat.objects.filter(classes=myclass).first()
+        return Response({"id":myChat.id})
