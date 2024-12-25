@@ -668,6 +668,28 @@ class TeacherAddStudentPlan(APIView):
         obj.save()
         return Response({'message':'the plan was added successfully'})
 
+class TeacherDeletePlan(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a student")
+        obj = StudentPlanning.objects.filter(id=request.data['id']).first()
+        if not obj:
+            raise AuthenticationFailed("There is no such a plan id with this student")
+        obj.delete()
+        return Response({'message':'the plan was deleted successfully'})
+
 class TeacherAddFeedback(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
