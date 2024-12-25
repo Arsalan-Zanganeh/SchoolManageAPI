@@ -644,6 +644,30 @@ class TeacherWatchStudentPlans(APIView):
         serializer = StudentPlanningSerializer(obj, many=True)
         return Response(serializer.data)
 
+class TeacherAddStudentPlan(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher:
+            raise AuthenticationFailed("There is no such a teacher")
+        # obj = StudentPlanning.objects.filter(Student=request.data['Student_ID'])
+        student = Student.objects.filter(id=request.data['Student_ID']).first()
+        obj = StudentPlanning.objects.create(Student=student, StartDate=request.data['StartDate'],
+                                             Title=request.data['Title'], Duration=request.data['Duration'],
+                                             Explanation=request.data['Explanation'])
+        obj.save()
+        return Response({'message':'the plan was added successfully'})
+
 class TeacherAddFeedback(APIView):
     def post(self, request):
         token = request.COOKIES.get('jwt')
