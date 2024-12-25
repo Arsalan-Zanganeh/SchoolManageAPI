@@ -7,7 +7,7 @@ from users.serializers import DisciplinaryScoreSerializer, DisciplinaryCaseSeria
     StudentHomeworkSerializer, ECFileSerializer, ECVideoSerializer, StudentPlanningSerializer, TeacherFeedbackSerializer
 from users.models import DisciplinaryScore, User, School, DisciplinaryCase, Student, Teacher, Classes, HomeWorkStudent, \
      HomeWorkTeacher, ECFile, ECVideo, StudentPlanning, TeacherFeedback
-from chat.models import Chat
+# from chat.models import Chat
 import jwt, datetime
 import re
 from django.contrib.auth.hashers import make_password, check_password

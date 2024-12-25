@@ -24,8 +24,8 @@ from .models import User, School, Classes, Teacher, ClassStudent, Student, UserP
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
     PrinicipalCalendar, SchoolTeachers, DisciplinaryScore
-from chat.models import AccountForChat
-from chat.models import Chat
+# from chat.models import AccountForChat
+# from chat.models import Chat
 from django.db.models import F
 import jwt, datetime
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
