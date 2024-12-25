@@ -35,7 +35,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .utils import Util
 
-import datetime
+
 import os.path
 import webbrowser
 from google.auth.transport.requests import Request

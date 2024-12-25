@@ -712,16 +712,16 @@ class TeacherWatchFeedbacks(APIView):
             raise AuthenticationFailed("Expired token!")
 
         teacher = Teacher.objects.filter(National_ID=payload['National_ID']).first()
-        if not teacher:
-            raise AuthenticationFailed("There is no such a teacher")
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not teacher and not student:
+            raise AuthenticationFailed("There is no such a teacher or student")
         plan = StudentPlanning.objects.filter(id=request.data['StudentPlanning_ID']).first()
         if not plan:
             raise AuthenticationFailed("There is no such a plan")
-        plan.feedbackCount += 1
-        plan.save()
-        feedback = TeacherFeedback.objects.filter(StudentPlanning=plan, Teacher=teacher).all()
+        feedback = TeacherFeedback.objects.filter(StudentPlanning=plan).all()
         serializer = TeacherFeedbackSerializer(feedback, many=True)
         return Response(serializer.data)
+
 class WSGetID(APIView):
     def get(self, request):
         token = request.COOKIES.get('class')

@@ -9,7 +9,8 @@ from rest_framework.exceptions import AuthenticationFailed
 from .models import User, Student, Teacher, School, Classes, ClassStudent, UserProfile, SchoolProfile, \
     StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
     QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, PrinicipalCalendar, \
-    QuizQuestionStudent, ECFile, ECVideo, StudentPlanning, TeacherFeedback
+    QuizQuestionStudent, ECFile, ECVideo, StudentPlanning, TeacherFeedback, QuizTeacherExplan, QuizQuestionExplan, \
+    QuizStudentRecordExplan, QuizQuestionStudentExplan
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -492,9 +493,19 @@ class CreateNewQuizSerializer(serializers.ModelSerializer):
         model = QuizTeacher
         fields = ['id', 'Title', 'Classes', 'Is_Published']
 
+class CreateNewQuizExplanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizTeacherExplan
+        fields = ['id', 'Title', 'Classes', 'Is_Published']
+
 class TeacherQuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizTeacher
+        fields = '__all__'
+
+class TeacherQuizExplanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizTeacherExplan
         fields = '__all__'
 
 class AddQuizQuestionSerializer(serializers.ModelSerializer):
@@ -502,14 +513,29 @@ class AddQuizQuestionSerializer(serializers.ModelSerializer):
         model = QuizQuestion
         fields = '__all__'
 
+class AddQuizQuestionExplanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestionExplan
+        fields = '__all__'
+
 class StudentQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestion
         fields = ['id', 'Question', 'Option1', 'Option2', 'Option3', 'Option4']
 
+class StudentQuestionExplanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestionExplan
+        fields = ['id', 'Question']
+
 class StudentQuizRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizStudentRecord
+        fields = '__all__'
+
+class StudentQuizRecordExplanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizStudentRecordExplan
         fields = '__all__'
 
 class ParentQuizRecordSerializer(serializers.Serializer):
@@ -519,6 +545,11 @@ class ParentQuizRecordSerializer(serializers.Serializer):
 class QuizQuestionStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestionStudent
+        fields = '__all__'
+
+class QuizQuestionStudentExplanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQuestionStudentExplan
         fields = '__all__'
 
 class StudentSetNewPasswordSerializer(serializers.Serializer):

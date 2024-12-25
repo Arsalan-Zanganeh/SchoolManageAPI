@@ -342,3 +342,33 @@ class Message(models.Model):
     Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
     sender = models.CharField(max_length=100)
     message = models.TextField()
+
+class QuizTeacherExplan(models.Model):
+    Title = models.CharField(max_length=100)
+    Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    OpenTime = models.DateTimeField(blank=False, null=False)
+    DurationHour = models.IntegerField()
+    DurationMinute = models.IntegerField()
+    Is_Published = models.BooleanField(default=False)
+
+class QuizQuestionExplan(models.Model):
+    QuizTeacherExplan = models.ForeignKey(QuizTeacherExplan, on_delete=models.CASCADE)
+    Question = models.TextField()
+    Zarib = models.FloatField()
+
+class QuizQuestionStudentExplan(models.Model):
+    QuizQuestionExplan = models.ForeignKey(QuizQuestionExplan, on_delete=models.CASCADE)
+    StudentAnswer = models.CharField(max_length=1000)
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    Correctness = models.FloatField(default=0)
+    class Meta:
+        unique_together = ('QuizQuestionExplan', 'Student')
+
+class QuizStudentRecordExplan(models.Model):
+    QuizTeacherExplan = models.ForeignKey(QuizTeacherExplan, on_delete=models.CASCADE)
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    Degree100 = models.FloatField()
+    DegreeBarom = models.FloatField()
+    FinishTime = models.DateTimeField()
+    marked = models.IntegerField(default=0)
