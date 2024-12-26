@@ -355,6 +355,7 @@ class QuizTeacherExplan(models.Model):
 class QuizQuestionExplan(models.Model):
     QuizTeacherExplan = models.ForeignKey(QuizTeacherExplan, on_delete=models.CASCADE)
     Question = models.TextField()
+    Answer = models.TextField()
     Zarib = models.FloatField()
 
 class QuizQuestionStudentExplan(models.Model):

@@ -2,8 +2,9 @@ from django.urls import path
 from .views import CreateNewQuizView, TeacherQuizesView, StartQuizView, StudentQuizView, \
     QuizQuestionsTeacherView, AddQuizQuestionView, DeleteQuizQuestionView, EditQuizQuestionView, \
     StudentAnswerQuestion, StudentShowQuestions, TeacherWatchRecords, \
-    StudentfinishExam, RecordToStudent, StudentShowRecord,StudentExtraFinish, \
-    QuizQuestionStudentView, QuizFinishedBoolean
+    StudentfinishExam, RecordToStudent, StudentShowRecord, StudentExtraFinish, \
+    QuizQuestionStudentView, QuizFinishedBoolean, StudentShowAnswers, TeacherWatchStudentAnswers, \
+    TeacherMarkStudentAnswer, TeacherFinishMark
 
 urlpatterns = [
     path('create_quiz/', CreateNewQuizView.as_view()),
@@ -14,6 +15,9 @@ urlpatterns = [
     path('teacher-add-quiz-question/', AddQuizQuestionView.as_view()),
     path('teacher-edit-quiz-question/', EditQuizQuestionView.as_view()),
     path('teacher-delete-quiz-question/', DeleteQuizQuestionView.as_view()),
+    path('teacher-watch-student-answers/', TeacherWatchStudentAnswers.as_view()),
+    path('teacher-mark-student-answer/', TeacherMarkStudentAnswer.as_view()),
+    path('teacher-finish-mark/', TeacherFinishMark.as_view()),
     path('student-answer-question/', StudentAnswerQuestion.as_view()),
     path('student-show-questions/', StudentShowQuestions.as_view()),
     path('student-finish-exam/', StudentfinishExam.as_view()),
@@ -23,4 +27,5 @@ urlpatterns = [
     path('student-extra-finish/', StudentExtraFinish.as_view()),
     path('student-quiz-prev-answers/', QuizQuestionStudentView.as_view()),
     path('student-quiz-finished-boolean/', QuizFinishedBoolean.as_view()),
+    path('student-show-answers/', StudentShowAnswers.as_view()),
 ]

@@ -526,7 +526,7 @@ class StudentQuestionSerializer(serializers.ModelSerializer):
 class StudentQuestionExplanSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestionExplan
-        fields = ['id', 'Question']
+        fields = ['id', 'Question', 'Zarib']
 
 class StudentQuizRecordSerializer(serializers.ModelSerializer):
     class Meta:
