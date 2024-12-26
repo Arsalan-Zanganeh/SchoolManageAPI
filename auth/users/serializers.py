@@ -552,6 +552,16 @@ class QuizQuestionStudentExplanSerializer(serializers.ModelSerializer):
         model = QuizQuestionStudentExplan
         fields = '__all__'
 
+class QuizQuestionStudentExplanEnhancedSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    Question = serializers.CharField(source='QuizQuestionExplan.Question')
+    Answer = serializers.CharField(source='QuizQuestionExplan.Answer')
+    StudentAnswer = serializers.CharField()
+    Correctness = serializers.FloatField()
+    Zarib = serializers.FloatField(source='QuizQuestionExplan.Zarib')
+    Correctness100 = serializers.FloatField()
+    marked = serializers.IntegerField()
+
 class StudentSetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, max_length=68, write_only=True)
     token = serializers.CharField(min_length=1, write_only=True)

@@ -8,7 +8,7 @@ from users.models import Teacher, Student, Classes, QuizTeacherExplan, QuizQuest
 
 from users.serializers import CreateNewQuizExplanSerializer, AddQuizQuestionExplanSerializer, \
     TeacherQuizExplanSerializer, StudentQuizRecordExplanSerializer, QuizQuestionStudentExplanSerializer, \
-    StudentSerializer, StudentQuestionExplanSerializer
+    StudentSerializer, StudentQuestionExplanSerializer, QuizQuestionStudentExplanEnhancedSerializer
 
 class CreateNewQuizView(APIView):
     def post(self, request):
@@ -473,7 +473,7 @@ class TeacherWatchStudentAnswers(APIView):
         if not quizstudentanswers:
             raise AuthenticationFailed("There is no such a record")
         nanay = QuizQuestionStudentExplan.objects.filter(Student=quizstudentanswers.Student,QuizQuestionExplan__QuizTeacherExplan=quizstudentanswers.QuizTeacherExplan).all()
-        serializer = QuizQuestionStudentExplanSerializer(nanay, many=True)
+        serializer = QuizQuestionStudentExplanEnhancedSerializer(nanay, many=True)
         return Response(serializer.data)
 
 class TeacherFinishMark(APIView):
@@ -528,7 +528,10 @@ class TeacherMarkStudentAnswer(APIView):
         cr = request.data['Correctness']
         if cr < 0 or cr > nanay.QuizQuestionExplan.Zarib:
             raise AuthenticationFailed("Wrong amount of Correctness")
+        zr = nanay.QuizQuestionExplan.Zarib
         nanay.Correctness = cr
+        nanay.Correctness100 = 100*(cr/zr)
+        nanay.marked = 1
         nanay.save()
         return Response({'message':'you marked this student question'})
 
@@ -592,8 +595,8 @@ class StudentShowAnswers(APIView):
         noww = datetime.datetime.now()
         validAfter = quiz.OpenTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
         if noww > validAfter:
-            questions = QuizQuestionExplan.objects.filter(QuizTeacherExplan=quiz).all()
-            serializer = AddQuizQuestionExplanSerializer(questions, many=True)
+            questions = QuizQuestionStudentExplan.objects.filter(QuizQuestionExplan__QuizTeacherExplan=quiz, Student=student).all()
+            serializer = QuizQuestionStudentExplanEnhancedSerializer(questions, many=True)
             return Response(serializer.data)
         return Response({'message':'it is not valid to show you the answers'})
 

@@ -18,6 +18,7 @@ urlpatterns = [
     path('teacher-watch-student-answers/', TeacherWatchStudentAnswers.as_view()),
     path('teacher-mark-student-answer/', TeacherMarkStudentAnswer.as_view()),
     path('teacher-finish-mark/', TeacherFinishMark.as_view()),
+    path('student-quiz-finished-boolean/', QuizFinishedBoolean.as_view()),
     path('student-answer-question/', StudentAnswerQuestion.as_view()),
     path('student-show-questions/', StudentShowQuestions.as_view()),
     path('student-finish-exam/', StudentfinishExam.as_view()),

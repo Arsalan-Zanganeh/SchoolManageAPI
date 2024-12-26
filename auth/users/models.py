@@ -354,8 +354,8 @@ class QuizTeacherExplan(models.Model):
 
 class QuizQuestionExplan(models.Model):
     QuizTeacherExplan = models.ForeignKey(QuizTeacherExplan, on_delete=models.CASCADE)
-    Question = models.TextField()
-    Answer = models.TextField()
+    Question = models.CharField(max_length=1000)
+    Answer = models.CharField(max_length=1000)
     Zarib = models.FloatField()
 
 class QuizQuestionStudentExplan(models.Model):
@@ -363,6 +363,8 @@ class QuizQuestionStudentExplan(models.Model):
     StudentAnswer = models.CharField(max_length=1000)
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     Correctness = models.FloatField(default=0)
+    Correctness100 = models.FloatField(default=0)
+    marked = models.IntegerField(default=0)
     class Meta:
         unique_together = ('QuizQuestionExplan', 'Student')
 
