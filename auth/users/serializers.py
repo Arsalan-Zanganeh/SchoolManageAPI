@@ -678,10 +678,15 @@ class ParentDisciplinaryCaseSerializer(serializers.Serializer):
     # Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')
     Case = serializers.CharField()
 
-class StudentHomeworkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HomeWorkStudent
-        fields = '__all__'
+class StudentHomeworkSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    first_name = serializers.CharField(source='Student.first_name')
+    last_name = serializers.CharField(source='Student.last_name')
+    National_ID = serializers.CharField(source='Student.National_ID')
+    HomeWorkAnswer = serializers.FileField()
+    SendingTime = serializers.DateTimeField()
+    Grade = serializers.IntegerField()
+    Graded = serializers.BooleanField()
 
 class ParentHomeworkSerializer(serializers.Serializer):
     Grade = serializers.IntegerField()
