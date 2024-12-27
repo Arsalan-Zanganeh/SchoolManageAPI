@@ -680,6 +680,7 @@ class ParentDisciplinaryCaseSerializer(serializers.Serializer):
 
 class StudentHomeworkSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    Student = serializers.IntegerField(source='Student.id')
     Student_firstname = serializers.CharField(source='Student.first_name')
     Student_lastname = serializers.CharField(source='Student.last_name')
     Student_National_ID = serializers.CharField(source='Student.National_ID')

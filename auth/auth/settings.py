@@ -101,11 +101,11 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Projectdb',
-        'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': 'postgres',
+        'USER': 'root',
+        'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
+        'HOST': 'taftan.liara.cloud',
+        'PORT': '33467',
     }}
 # DATABASES = {
 #         "default": {
