@@ -101,26 +101,26 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # Deployed Database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'postgres',
-#         'USER': 'root',
-#         'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
-#         'HOST': 'taftan.liara.cloud',
-#         'PORT': '33467',
-#     }}
-
-# local database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Projectdb',
-        'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': 'postgres',
+        'USER': 'root',
+        'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
+        'HOST': 'taftan.liara.cloud',
+        'PORT': '33467',
     }}
+
+# local database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'Projectdb',
+#         'USER': 'postgres',
+#         'PASSWORD': '123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }}
 
 # DATABASES = {
 #         "default": {
@@ -209,5 +209,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = 'n23874551@gmail.com'
+EMAIL_HOST_PASSWORD = 'wqpz jghb ahkg atks'
