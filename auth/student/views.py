@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import StudentSerializer, ClassSerializer, ParentHomeworkSerializer, \
     ParentQuizRecordSerializer, AttendanceParentSerializer, ParentDisciplinaryCaseSerializer, \
-    ParentDisciplinaryScoreSerializer
+    ParentDisciplinaryScoreSerializer, RecentQuizTestSerializer, RecentHomeworkSerializer
 from users.models import Student, ClassStudent, Classes, HomeWorkStudent, QuizStudentRecord, \
-    StudentAttendance, DisciplinaryCase, DisciplinaryScore
+    StudentAttendance, DisciplinaryCase, DisciplinaryScore, QuizTeacher, QuizTeacherExplan, \
+    QuizStudentRecordExplan, HomeWorkTeacher
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -343,4 +344,93 @@ class DisciplineScore(APIView):
 
         damn = DisciplinaryScore.objects.filter(Student=student).first()
         serializer = ParentDisciplinaryScoreSerializer(damn)
+        return Response(serializer.data)
+
+class RecentQuizTest(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+
+        mylist = []
+        noww = datetime.datetime.now()
+        myvals = ClassStudent.objects.filter(Student=student).values_list('Classes__id', flat=True)
+        myquizes = QuizTeacher.objects.filter(Classes__id__in=myvals, Is_Published=True).all()
+        print(myquizes)
+        for quiz in myquizes:
+            endtime = quiz.OpenTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
+            print(endtime)
+            if endtime > noww:
+                myrecord = QuizStudentRecord.objects.filter(Student=student, QuizTeacher=quiz).first()
+                if not myrecord:
+                    mylist.append(quiz)
+
+        serializer = RecentQuizTestSerializer(mylist, many=True)
+        return Response(serializer.data)
+
+class RecentQuizExplan(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+        mylist = []
+        noww = datetime.datetime.now()
+        myvals = ClassStudent.objects.filter(Student=student).values_list('Classes__id', flat=True)
+        myquizes = QuizTeacherExplan.objects.filter(Classes__id__in=myvals, Is_Published=True).all()
+        for quiz in myquizes:
+            endtime = quiz.OpenTime + datetime.timedelta(hours=quiz.DurationHour, minutes=quiz.DurationMinute)
+            if endtime > noww:
+                myrecord = QuizStudentRecordExplan.objects.filter(Student=student, QuizTeacherExplan=quiz).first()
+                if not myrecord:
+                    mylist.append(quiz)
+
+        serializer = RecentQuizTestSerializer(mylist, many=True)
+        return Response(serializer.data)
+
+class RecentHomework(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+        if not student:
+            raise AuthenticationFailed("There is no such a student")
+        mylist = []
+        noww = datetime.datetime.now()
+        myvals = ClassStudent.objects.filter(Student=student).values_list('Classes__id', flat=True)
+        myhomeworks = HomeWorkTeacher.objects.filter(Classes__id__in=myvals, Is_Published=True).all()
+        for homework in myhomeworks:
+            if homework.DeadLine > noww:
+                myrecord = HomeWorkStudent.objects.filter(Student=student, HomeWorkTeacher=homework).first()
+                if not myrecord.HomeWorkAnswer:
+                    mylist.append(homework)
+
+        serializer = RecentHomeworkSerializer(mylist, many=True)
         return Response(serializer.data)

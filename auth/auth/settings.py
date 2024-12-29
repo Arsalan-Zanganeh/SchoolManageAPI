@@ -30,6 +30,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    'bright-campus:80',
+    'bright-campus.liara.run',
 ]
 
 CHANNEL_LAYERS = {
@@ -98,15 +100,28 @@ TEMPLATES = [
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Deployed Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'postgres',
+#         'USER': 'root',
+#         'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
+#         'HOST': 'taftan.liara.cloud',
+#         'PORT': '33467',
+#     }}
+
+# local database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'root',
-        'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
-        'HOST': 'taftan.liara.cloud',
-        'PORT': '33467',
+        'NAME': 'Projectdb',
+        'USER': 'postgres',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }}
+
 # DATABASES = {
 #         "default": {
 #             "ENGINE": "django.db.backends.sqlite3",
@@ -157,8 +172,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "content-type",           # For sending JSON or other content types
+    "authorization",          # For including authorization tokens
+    "x-csrftoken",            # For Django's CSRF protection
+    "accept",                 # For specifying acceptable response types
+    "accept-encoding",        # For compression
+    "origin",                 # For indicating the origin of the request
+    "user-agent",             # For browser identification
+    "x-requested-with",       # Commonly used for AJAX requests
+    "cache-control",          # For controlling caching behavior
+    "pragma",                 # HTTP/1.0 caches behavior
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    'https://www.bright-campus.ir'
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -714,3 +714,19 @@ class TeacherFeedbackSerializer(serializers.Serializer):
     Teacher_First_Name = serializers.CharField(source='Teacher.first_name')
     Teacher_Last_Name = serializers.CharField(source='Teacher.last_name')
     Feedback = serializers.CharField()
+
+class RecentQuizTestSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    Title = serializers.CharField()
+    OpenTime = serializers.DateTimeField()
+    DurationHour = serializers.IntegerField()
+    DurationMinute = serializers.IntegerField()
+    class_id = serializers.IntegerField(source='Classes.id')
+    class_topic = serializers.CharField(source='Classes.Topic')
+
+class RecentHomeworkSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    Title = serializers.CharField()
+    DeadLine = serializers.DateTimeField()
+    class_id = serializers.IntegerField(source='Classes.id')
+    class_topic = serializers.CharField(source='Classes.Topic')
