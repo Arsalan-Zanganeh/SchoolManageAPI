@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'chat',
     'channels',
     'quiz',
+    'notification',
 ]
 
 ASGI_APPLICATION = 'auth.asgi.application'

@@ -214,6 +214,19 @@ class NotificationStudent(models.Model):
     seen = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
 
+class NotificationSchoolParent(models.Model):
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
+    archive = models.BooleanField(default=False)
+
+class NotificationParent(models.Model):
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    seen = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False)
+
 class QuizTeacher(models.Model):
     Title = models.CharField(max_length=100)
     Teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)

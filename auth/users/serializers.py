@@ -10,7 +10,7 @@ from .models import User, Student, Teacher, School, Classes, ClassStudent, UserP
     StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
     QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, PrinicipalCalendar, \
     QuizQuestionStudent, ECFile, ECVideo, StudentPlanning, TeacherFeedback, QuizTeacherExplan, QuizQuestionExplan, \
-    QuizStudentRecordExplan, QuizQuestionStudentExplan
+    QuizStudentRecordExplan, QuizQuestionStudentExplan, NotificationParent, NotificationSchoolParent
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -450,9 +450,19 @@ class NotificationSchoolSerializer(serializers.ModelSerializer):
         model = NotificationSchool
         fields = ['message', 'date', 'school', 'archive']
 
+class NotificationSchoolParentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationSchoolParent
+        fields = ['message', 'date', 'school', 'archive']
+
 class NotificationStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationStudent
+        fields = ['id' ,'date', 'student', 'seen', 'archive', 'message']
+
+class NotificationParentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationParent
         fields = ['id' ,'date', 'student', 'seen', 'archive', 'message']
 
 class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
