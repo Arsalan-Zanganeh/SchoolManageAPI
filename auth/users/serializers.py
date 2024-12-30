@@ -757,3 +757,7 @@ class RecentHomeworkSerializer(serializers.Serializer):
     DeadLine = serializers.DateTimeField()
     class_id = serializers.IntegerField(source='Classes.id')
     class_topic = serializers.CharField(source='Classes.Topic')
+
+class ParentWalletSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    balance = serializers.FloatField()

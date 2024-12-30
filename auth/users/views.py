@@ -23,7 +23,7 @@ from .serializers import UserSerializer, StudentSerializer, TeacherSerializer, S
 from .models import User, School, Classes, Teacher, ClassStudent, Student, UserProfile, \
     SchoolProfile, StudentProfile, TeacherProfile, NotificationSchool, NotificationStudent, QuizTeacher, \
     QuizQuestion, QuizQuestionStudent, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, \
-    PrinicipalCalendar, SchoolTeachers, DisciplinaryScore
+    PrinicipalCalendar, SchoolTeachers, DisciplinaryScore, Wallet
 from chat.models import AccountForChat
 from chat.models import Chat
 from django.db.models import F
@@ -152,6 +152,8 @@ class AddStudentView(APIView):
         prof.save()
         discip = DisciplinaryScore.objects.create(Student=student, Grade=100)
         discip.save()
+        mywallet = Wallet.objects.create(student=student)
+        mywallet.save()
         return Response(serializer.data)
 
 class AddTeacherView(APIView):

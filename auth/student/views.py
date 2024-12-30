@@ -5,10 +5,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import StudentSerializer, ClassSerializer, ParentHomeworkSerializer, \
     ParentQuizRecordSerializer, AttendanceParentSerializer, ParentDisciplinaryCaseSerializer, \
-    ParentDisciplinaryScoreSerializer, RecentQuizTestSerializer, RecentHomeworkSerializer
+    ParentDisciplinaryScoreSerializer, RecentQuizTestSerializer, RecentHomeworkSerializer, \
+    ParentWalletSerializer
 from users.models import Student, ClassStudent, Classes, HomeWorkStudent, QuizStudentRecord, \
     StudentAttendance, DisciplinaryCase, DisciplinaryScore, QuizTeacher, QuizTeacherExplan, \
-    QuizStudentRecordExplan, HomeWorkTeacher
+    QuizStudentRecordExplan, HomeWorkTeacher, Wallet, WalletTransaction
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -433,4 +434,136 @@ class RecentHomework(APIView):
                     mylist.append(homework)
 
         serializer = RecentHomeworkSerializer(mylist, many=True)
+        return Response(serializer.data)
+
+
+class ChargeWalletView(APIView):
+    def post(self, request):
+
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        except jwt.DecodeError:
+            raise AuthenticationFailed("Invalid token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+
+        if not student:
+            raise AuthenticationFailed("Student not found.")
+
+        wallet = Wallet.objects.filter(student=student).first()
+
+        if not wallet:
+            raise AuthenticationFailed("Wallet not found for this student.")
+
+        amount = float(request.data.get('amount'))
+
+        if amount <= 0:
+            return Response({"message": "Amount must be greater than zero."}, status=400)
+
+        wallet.balance += amount
+        wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            amount=amount,
+            transaction_type='credit',
+            balance_after_transaction=wallet.balance
+        )
+
+        serializer = ParentWalletSerializer(wallet)
+        return Response(serializer.data)
+
+
+class DebitWalletView(APIView):
+    def post(self, request):
+        # Retrieve JWT token from cookies
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            # Decode the JWT token to extract the user information (e.g., National_ID of the manager)
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        except jwt.DecodeError:
+            raise AuthenticationFailed("Invalid token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+
+        if not student:
+            raise AuthenticationFailed("Student not found.")
+
+        # if not manager.is_admin:
+        #     raise AuthenticationFailed("You do not have permission to perform this action.")
+
+        wallet = Wallet.objects.filter(student=student).first()
+
+        if not wallet:
+            raise AuthenticationFailed("Wallet not found for this student.")
+
+        amount = float(request.data.get('amount'))
+
+        # Validate the amount
+        if amount <= 0:
+            return Response({"message": "Amount must be greater than zero."}, status=400)
+
+        if amount > wallet.balance:
+            return Response({"message": "Insufficient balance in the wallet."}, status=400)
+
+        wallet.balance -= amount
+        wallet.save()
+
+        # Log the transaction in the WalletTransaction model
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            amount=amount,
+            transaction_type='debit',
+            balance_after_transaction=wallet.balance
+        )
+
+        # Serialize the student data and return it in the response
+        serializer = ParentWalletSerializer(wallet)
+        return Response(serializer.data)
+
+
+class WalletView(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            # Decode the JWT token to extract the user information (e.g., National_ID of the manager)
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        except jwt.DecodeError:
+            raise AuthenticationFailed("Invalid token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+
+        if not student:
+            raise AuthenticationFailed("Student not found.")
+
+        wallet = Wallet.objects.filter(student=student).first()
+
+        if not wallet:
+            raise AuthenticationFailed("Wallet not found for this student.")
+
+        serializer = ParentWalletSerializer(wallet)
+
         return Response(serializer.data)

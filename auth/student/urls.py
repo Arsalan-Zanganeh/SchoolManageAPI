@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import StudentLoginView, StudentLogoutView, StudentView, StudentClassesView, ParentLogin, ParentLogoutView, \
     ParentClassesView, ParentEnterClass, ParentSeeHomeworkRecords, ParentCheckStudentAttendance, ParentShowQuizRecords, \
-    DisciplinaryCaseList, DisciplineScore, RecentQuizTest, RecentHomework, RecentQuizExplan
+    DisciplinaryCaseList, DisciplineScore, RecentQuizTest, RecentHomework, RecentQuizExplan, ChargeWalletView, \
+    DebitWalletView, WalletView
 
 urlpatterns = [
     path('login/', StudentLoginView.as_view()),
@@ -20,4 +21,7 @@ urlpatterns = [
     path('recent-quiz-test/', RecentQuizTest.as_view()),
     path('recent-homework/', RecentHomework.as_view()),
     path('recent-quiz-explan/', RecentQuizExplan.as_view()),
+    path('parent-chargewallet/', ChargeWalletView.as_view()),
+    path('parent-debitwallet/', DebitWalletView.as_view()),
+    path('parent-view-wallet/', WalletView.as_view()),
 ]
