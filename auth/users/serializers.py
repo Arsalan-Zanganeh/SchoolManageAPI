@@ -463,17 +463,22 @@ class ResetPasswordEmailRequestSerializer(serializers.ModelSerializer):
 
 class SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    confirm_password = serializers.CharField(min_length=6, max_length=68, write_only=True)
     token = serializers.CharField(min_length=1, write_only=True)
     uidb64 = serializers.CharField(min_length=1, write_only=True)  # Corrected field name
 
     class Meta:
-        fields = ['password', 'token', 'uidb64']
+        fields = ['password', 'confirm_password', 'token', 'uidb64']
 
     def validate(self, attrs):
         try:
             password = attrs.get('password')
+            confirm_password = attrs.get('confirm_password')
             token = attrs.get('token')
             uidb64 = attrs.get('uidb64')  # Corrected field name
+
+            if password!=confirm_password:
+                raise AuthenticationFailed('password and confirm password do not match')
 
             id = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(id=id)
@@ -564,18 +569,24 @@ class QuizQuestionStudentExplanEnhancedSerializer(serializers.Serializer):
 
 class StudentSetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    confirm_password = serializers.CharField(min_length=6, max_length=68, write_only=True)
     token = serializers.CharField(min_length=1, write_only=True)
     uidb64 = serializers.CharField(min_length=1, write_only=True)  # Corrected field name
 
     class Meta:
-        fields = ['password', 'token', 'uidb64']
+        fields = ['password', 'confirm_password', 'token', 'uidb64']
 
     def validate(self, attrs):
         password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
         token = attrs.get('token')
         uidb64 = attrs.get('uidb64')  # Corrected field name
 
         try:
+
+            if password!=confirm_password:
+                raise AuthenticationFailed('password and confirm password do not match')
+
             id = force_str(urlsafe_base64_decode(uidb64))
             student = Student.objects.get(id=id)
 
@@ -592,18 +603,24 @@ class StudentSetNewPasswordSerializer(serializers.Serializer):
 
 class TeacherSetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, max_length=68, write_only=True)
+    confirm_password = serializers.CharField(min_length=6, max_length=68, write_only=True)
     token = serializers.CharField(min_length=1, write_only=True)
     uidb64 = serializers.CharField(min_length=1, write_only=True)  # Corrected field name
 
     class Meta:
-        fields = ['password', 'token', 'uidb64']
+        fields = ['password', 'confirm_password', 'token', 'uidb64']
 
     def validate(self, attrs):
         password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
         token = attrs.get('token')
         uidb64 = attrs.get('uidb64')  # Corrected field name
 
         try:
+
+            if password!=confirm_password:
+                raise AuthenticationFailed('password and confirm password do not match')
+
             id = force_str(urlsafe_base64_decode(uidb64))
             teacher = Teacher.objects.get(id=id)
 

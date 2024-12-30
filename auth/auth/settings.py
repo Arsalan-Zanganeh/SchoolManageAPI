@@ -96,38 +96,28 @@ TEMPLATES = [
 ]
 
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 # Deployed Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'root',
-        'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
-        'HOST': 'taftan.liara.cloud',
-        'PORT': '33467',
-    }}
-
-# local database
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'Projectdb',
-#         'USER': 'postgres',
-#         'PASSWORD': '123',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
+#         'NAME': 'postgres',
+#         'USER': 'root',
+#         'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
+#         'HOST': 'taftan.liara.cloud',
+#         'PORT': '33467',
 #     }}
 
-# DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": BASE_DIR / "db.sqlite3",
-#         }
-#     }
+# local database
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Projectdb',
+        'USER': 'postgres',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
