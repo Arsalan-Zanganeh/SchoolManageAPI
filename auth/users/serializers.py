@@ -10,7 +10,7 @@ from .models import User, Student, Teacher, School, Classes, ClassStudent, UserP
     StudentProfile, TeacherProfile, NotificationStudent, NotificationSchool, QuizTeacher, \
     QuizQuestion, QuizStudentRecord, HallandAPI, HomeWorkTeacher, HomeWorkStudent, PrinicipalCalendar, \
     QuizQuestionStudent, ECFile, ECVideo, StudentPlanning, TeacherFeedback, QuizTeacherExplan, QuizQuestionExplan, \
-    QuizStudentRecordExplan, QuizQuestionStudentExplan, NotificationParent, NotificationSchoolParent
+    QuizStudentRecordExplan, QuizQuestionStudentExplan, NotificationParent, NotificationSchoolParent, Fee
 
 import re
 from django.contrib.auth.password_validation import validate_password
@@ -761,3 +761,15 @@ class RecentHomeworkSerializer(serializers.Serializer):
 class ParentWalletSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     balance = serializers.FloatField()
+
+class FeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Fee
+        fields = '__all__'
+
+class FeeListParentSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    Is_Paid = serializers.IntegerField()
+    Amount = serializers.FloatField(source='Fee.Amount')
+    Year = serializers.IntegerField(source='Fee.Year')
+    Month = serializers.IntegerField(source='Fee.Month')

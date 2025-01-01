@@ -6,12 +6,13 @@ from rest_framework.views import APIView
 from users.serializers import StudentSerializer, ClassSerializer, ParentHomeworkSerializer, \
     ParentQuizRecordSerializer, AttendanceParentSerializer, ParentDisciplinaryCaseSerializer, \
     ParentDisciplinaryScoreSerializer, RecentQuizTestSerializer, RecentHomeworkSerializer, \
-    ParentWalletSerializer
+    ParentWalletSerializer, FeeSerializer, FeeListParentSerializer
 from users.models import Student, ClassStudent, Classes, HomeWorkStudent, QuizStudentRecord, \
     StudentAttendance, DisciplinaryCase, DisciplinaryScore, QuizTeacher, QuizTeacherExplan, \
-    QuizStudentRecordExplan, HomeWorkTeacher, Wallet, WalletTransaction
+    QuizStudentRecordExplan, HomeWorkTeacher, Wallet, WalletTransaction, School, Fee, FeePaid
 import jwt, datetime
 from django.contrib.auth.hashers import make_password, check_password
+
 
 
 # Create your views here.
@@ -567,3 +568,168 @@ class WalletView(APIView):
         serializer = ParentWalletSerializer(wallet)
 
         return Response(serializer.data)
+
+class PrincipalAddChangeFee(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('school')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        if not school:
+            raise AuthenticationFailed("There is no such a school")
+
+        myfee = Fee.objects.filter(School=school, Year=request.data['Year'], Month=request.data['Month']).first()
+        if myfee:
+            if myfee.Is_Sent == 1:
+                return Response({"message": "Fee already sent"})
+            myfee.Year = request.data['Year']
+            myfee.Month = request.data['Month']
+            myfee.Amount = request.data['Amount']
+            myfee.save()
+            return Response({"message": "Fee changed"})
+
+        myfee = Fee.objects.create(School=school, Year=request.data['Year'], Month=request.data['Month'], Amount=request.data['Amount'])
+        myfee.save()
+        return Response({"message": "Fee added"})
+
+class PrincipalSendFee(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('school')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        if not school:
+            raise AuthenticationFailed("There is no such a school")
+
+        myfee = Fee.objects.filter(School=school, id=request.data['id']).first()
+        if not myfee:
+            raise AuthenticationFailed("Fee not found.")
+
+        if myfee.Is_Sent == 1:
+            return Response({"message": "Fee already sent"})
+
+        myfee.Is_Sent = 1
+        myfee.save()
+
+        students = Student.objects.filter(School=school).all()
+        for student in students:
+            studentfee = FeePaid.objects.create(Student=student, Fee=myfee)
+            studentfee.save()
+        return Response({"message": "Fee sent"})
+
+class PrincipalFeeList(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('school')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        if not school:
+            raise AuthenticationFailed("There is no such a school")
+
+        myfee = Fee.objects.filter(School=school).all()
+        serializer = FeeSerializer(myfee, many=True)
+        return Response(serializer.data)
+
+class PrincipalFeePaidList(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('school')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+
+        school = School.objects.filter(Postal_Code=payload['Postal_Code']).first()
+        if not school:
+            raise AuthenticationFailed("There is no such a school")
+
+        fees = FeePaid.objects.filter(Student__School=school).all()
+        serializer = FeeListParentSerializer(fees, many=True)
+        return Response(serializer.data)
+
+class ParentFeeList(APIView):
+    def get(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            # Decode the JWT token to extract the user information (e.g., National_ID of the manager)
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        except jwt.DecodeError:
+            raise AuthenticationFailed("Invalid token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+
+        if not student:
+            raise AuthenticationFailed("Student not found.")
+
+        fees = FeePaid.objects.filter(Student=student).all()
+        serializer = FeeListParentSerializer(fees, many=True)
+        return Response(serializer.data)
+
+class ParentPayFee(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+
+        try:
+            # Decode the JWT token to extract the user information (e.g., National_ID of the manager)
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121',
+                                 algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        except jwt.DecodeError:
+            raise AuthenticationFailed("Invalid token!")
+
+        student = Student.objects.filter(National_ID=payload['National_ID']).first()
+
+        if not student:
+            raise AuthenticationFailed("Student not found.")
+
+        fee = FeePaid.objects.filter(Student=student, id=request.data['id']).first()
+        if not fee:
+            raise AuthenticationFailed("Fee not found.")
+
+        if fee.Is_Paid == 1:
+            return Response({"message": "Fee already paid"})
+
+        wallet = Wallet.objects.filter(student=student).first()
+
+        if not wallet:
+            raise AuthenticationFailed("Wallet not found for this student.")
+
+        if wallet.balance<fee.Fee.Amount:
+            return Response({"message": "Not enough money"})
+
+        wallet.balance -= fee.Fee.Amount
+        wallet.save()
+        fee.Is_Paid = 1
+        fee.save()
+        return Response({"message": "Fee paid"})

@@ -396,7 +396,6 @@ class Wallet(models.Model):
     def __str__(self):
         return f"Wallet for {self.student.first_name} {self.student.last_name}"
 
-
 class WalletTransaction(models.Model):
     TRANSACTION_TYPES = [
         ('credit', 'Credit'),
@@ -411,3 +410,17 @@ class WalletTransaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type} of {self.amount} for {self.wallet.student.National_ID}"
+
+class Fee(models.Model):
+    Amount = models.FloatField()
+    Year = models.IntegerField()
+    Month = models.IntegerField()
+    School = models.ForeignKey(School, on_delete=models.CASCADE)
+    Is_Sent = models.IntegerField(default=0)
+    class Meta:
+        unique_together = ('Year', 'Month', 'School')
+
+class FeePaid(models.Model):
+    Fee = models.ForeignKey(Fee, on_delete=models.CASCADE)
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    Is_Paid = models.IntegerField(default=0)

@@ -2,7 +2,8 @@ from django.urls import path
 from .views import StudentLoginView, StudentLogoutView, StudentView, StudentClassesView, ParentLogin, ParentLogoutView, \
     ParentClassesView, ParentEnterClass, ParentSeeHomeworkRecords, ParentCheckStudentAttendance, ParentShowQuizRecords, \
     DisciplinaryCaseList, DisciplineScore, RecentQuizTest, RecentHomework, RecentQuizExplan, ChargeWalletView, \
-    DebitWalletView, WalletView
+    DebitWalletView, WalletView, PrincipalAddChangeFee, PrincipalSendFee, PrincipalFeeList, PrincipalFeePaidList, \
+    ParentFeeList, ParentPayFee
 
 urlpatterns = [
     path('login/', StudentLoginView.as_view()),
@@ -24,4 +25,10 @@ urlpatterns = [
     path('parent-chargewallet/', ChargeWalletView.as_view()),
     path('parent-debitwallet/', DebitWalletView.as_view()),
     path('parent-view-wallet/', WalletView.as_view()),
+    path('principal-add-change-fee/', PrincipalAddChangeFee.as_view()),
+    path('principal-send-fee/', PrincipalSendFee.as_view()),
+    path('principal-fee-list/', PrincipalFeeList.as_view()),
+    path('principal-fee-paid-list/', PrincipalFeePaidList.as_view()),
+    path('parent-fee-list/', ParentFeeList.as_view()),
+    path('parent-pay-fee/', ParentPayFee.as_view()),
 ]
