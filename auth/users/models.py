@@ -424,3 +424,7 @@ class FeePaid(models.Model):
     Fee = models.ForeignKey(Fee, on_delete=models.CASCADE)
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     Is_Paid = models.IntegerField(default=0)
+
+class OnlineClass(models.Model):
+    Classes = models.ForeignKey(Classes, on_delete=models.CASCADE)
+    link = models.CharField(max_length=100)

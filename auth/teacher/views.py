@@ -1,4 +1,6 @@
 # Create your views here.
+import pickle
+
 import pytz
 from django.shortcuts import render
 from rest_framework.exceptions import AuthenticationFailed
@@ -6,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.serializers import TeacherSerializer, ClassSerializer, StudentSerializer, AttendanceFormSerializer
 from users.models import Teacher, ClassStudent, Classes, Student, StudentAttendance, SchoolTeachers, PrinicipalCalendar, \
-    PrincipalAddEvent, School
+    PrincipalAddEvent, School, OnlineClass
 import jwt, datetime, os
 from django.contrib.auth.hashers import make_password, check_password
 import webbrowser
