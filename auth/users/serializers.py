@@ -773,3 +773,7 @@ class FeeListParentSerializer(serializers.Serializer):
     Amount = serializers.FloatField(source='Fee.Amount')
     Year = serializers.IntegerField(source='Fee.Year')
     Month = serializers.IntegerField(source='Fee.Month')
+    National_ID = serializers.CharField(source='Student.National_ID')
+    last_name = serializers.CharField(source='Student.last_name')
+    LandLine = serializers.CharField(source='Student.LandLine')
+    Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')

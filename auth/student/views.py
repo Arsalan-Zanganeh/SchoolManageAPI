@@ -38,8 +38,8 @@ class StudentLoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        # response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'jwt': token
         }
@@ -118,8 +118,8 @@ class ParentLogin(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        # response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'jwt': token
         }
@@ -183,8 +183,8 @@ class ParentEnterClass(APIView):
 
         response = Response()
 
-        response.set_cookie(key='class', value=token, httponly=True)
-        # response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='class', value=token, httponly=True)
+        response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'class': token
         }

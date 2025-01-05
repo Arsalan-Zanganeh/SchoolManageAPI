@@ -35,8 +35,11 @@ ALLOWED_HOSTS = [
 ]
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
     },
 }
 
@@ -99,26 +102,26 @@ TEMPLATES = [
 
 
 # Deployed Database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'postgres',
-#         'USER': 'root',
-#         'PASSWORD': 'ThGSc50EcyU4Tqa1aBrMFJVj',
-#         'HOST': 'taftan.liara.cloud',
-#         'PORT': '33467',
-#     }}
-
-# local database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Projectdb',
-        'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': 'postgres',
+        'USER': 'root',
+        'PASSWORD': 'vnf4Eaa3D5M48dqYu2SyWcGT',
+        'HOST': 'taftan.liara.cloud',
+        'PORT': '30998',
     }}
+
+# local database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'Projectdb',
+#         'USER': 'postgres',
+#         'PASSWORD': '123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }}
 
 
 # Password validation
