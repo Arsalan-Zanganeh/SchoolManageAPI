@@ -26,4 +26,5 @@ urlpatterns = [
     path('quiz/', include('quiz.urls')),
     path('notification/', include('notification.urls')),
     path('meet/', include('meet.urls')),
+    path('portfolio/', include('portfolio.urls')),
 ]

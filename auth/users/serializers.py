@@ -777,3 +777,9 @@ class FeeListParentSerializer(serializers.Serializer):
     last_name = serializers.CharField(source='Student.last_name')
     LandLine = serializers.CharField(source='Student.LandLine')
     Father_Phone_Number = serializers.CharField(source='Student.Father_Phone_Number')
+
+class StudentPictureSerializer(serializers.Serializer):
+    profile_image = serializers.ImageField()
+
+class TeacherPictureSerializer(serializers.Serializer):
+    profile_image = serializers.ImageField()

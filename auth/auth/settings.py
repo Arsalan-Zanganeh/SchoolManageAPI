@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'quiz',
     'notification',
     'meet',
+    'portfolio',
 ]
 
 ASGI_APPLICATION = 'auth.asgi.application'
@@ -102,26 +103,26 @@ TEMPLATES = [
 
 
 # Deployed Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'root',
-        'PASSWORD': 'vnf4Eaa3D5M48dqYu2SyWcGT',
-        'HOST': 'taftan.liara.cloud',
-        'PORT': '30998',
-    }}
-
-# local database
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'Projectdb',
-#         'USER': 'postgres',
-#         'PASSWORD': '123',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
+#         'NAME': 'postgres',
+#         'USER': 'root',
+#         'PASSWORD': 'vnf4Eaa3D5M48dqYu2SyWcGT',
+#         'HOST': 'taftan.liara.cloud',
+#         'PORT': '30998',
 #     }}
+
+# local database
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Projectdb',
+        'USER': 'postgres',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }}
 
 
 # Password validation
