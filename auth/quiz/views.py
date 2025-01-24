@@ -114,6 +114,7 @@ class EditQuizQuestionView(APIView):
         question = QuizQuestionExplan.objects.filter(QuizTeacherExplan=quiz, pk=request.data['Question_ID']).first()
         question.Question = request.data['Question']
         question.Zarib=request.data['Zarib']
+        question.Answer = request.data['Answer']
         question.save()
         return Response({'message':'Your question has been edited'})
 
