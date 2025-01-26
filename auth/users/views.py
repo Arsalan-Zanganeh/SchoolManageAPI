@@ -81,8 +81,8 @@ class LoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        # response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'jwt': token
         }
@@ -306,8 +306,8 @@ class LoginSchoolView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='school', value=token, httponly=True)
-        # response.set_cookie(key='school', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='school', value=token, httponly=True)
+        response.set_cookie(key='school', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'school': token
         }
@@ -906,7 +906,7 @@ class RequestPasswordResetEmailView(APIView):
             token = PasswordResetTokenGenerator().make_token(user)
 
             # Generate the frontend URL with uidb64 and token
-            absurl = f'https://bright-campus.ir/PasswordResetAdmin/{uidb64}/{token}/'
+            absurl = f'https://bright-campus.liara.run/PasswordResetAdmin/{uidb64}/{token}/'
             email_body = f"Hello,\n\nPlease use the link below to reset your password:\n{absurl}"
             data = {
                 'email_body': email_body,
@@ -956,7 +956,7 @@ class StudentRequestPasswordResetEmailView(APIView):
             token = PasswordResetTokenGenerator().make_token(student)
 
             # Generate the frontend URL with uidb64 and token
-            absurl = f'https://bright-campus.ir/PasswordResetStudent/{uidb64}/{token}/'
+            absurl = f'https://bright-campus.liara.run/PasswordResetStudent/{uidb64}/{token}/'
             email_body = f"Hello,\n\nPlease use the link below to reset your password:\n{absurl}"
             data = {
                 'email_body': email_body,
@@ -1005,7 +1005,7 @@ class TeacherRequestPasswordResetEmailView(APIView):
             token = PasswordResetTokenGenerator().make_token(teacher)
 
             # Generate the frontend URL with uidb64 and token
-            absurl = f'https://bright-campus.ir/PasswordResetTeacher/{uidb64}/{token}/'
+            absurl = f'https://bright-campus.liara.run/PasswordResetTeacher/{uidb64}/{token}/'
             email_body = f"Hello,\n\nPlease use the link below to reset your password:\n{absurl}"
             data = {
                 'email_body': email_body,
@@ -1934,8 +1934,8 @@ class TeacherEnterClass(APIView):
 
         response = Response()
 
-        response.set_cookie(key='class', value=token, httponly=True)
-        # response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='class', value=token, httponly=True)
+        response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'class': token
         }
@@ -1967,8 +1967,8 @@ class StudentEnterClass(APIView):
 
         response = Response()
 
-        response.set_cookie(key='class', value=token, httponly=True)
-        # response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
+        # response.set_cookie(key='class', value=token, httponly=True)
+        response.set_cookie(key='class', value=token, httponly=True, samesite='None', secure=True)
         response.data = {
             'class': token
         }

@@ -5,7 +5,9 @@ import redis
 import logging
 
 logger = logging.getLogger(__name__)
-redis_client = redis.Redis(host='127.0.0.1', port=6379, db=0)
+# redis_client = redis.Redis(host='127.0.0.1', port=6379, db=0)
+redis_url = 'redis://:D0snpDuHbUbKA6b647fIZgMW@tai.liara.cloud:30627/0'
+redis_client = redis.StrictRedis.from_url(redis_url)
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):

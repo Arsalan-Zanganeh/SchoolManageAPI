@@ -27,4 +27,5 @@ urlpatterns = [
     path('notification/', include('notification.urls')),
     path('meet/', include('meet.urls')),
     path('portfolio/', include('portfolio.urls')),
+    path('redis/', include('redis_app.urls')),
 ]

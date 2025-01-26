@@ -36,11 +36,12 @@ ALLOWED_HOSTS = [
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
+    "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
+    "CONFIG": {
+        "hosts":[{
+            "address": 'redis://:D0snpDuHbUbKA6b647fIZgMW@tai.liara.cloud:30627/0'
+        }]}
+    }
 }
 
 
@@ -66,6 +67,7 @@ INSTALLED_APPS = [
     'notification',
     'meet',
     'portfolio',
+    'redis_app',
 ]
 
 ASGI_APPLICATION = 'auth.asgi.application'
@@ -103,26 +105,26 @@ TEMPLATES = [
 
 
 # Deployed Database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'postgres',
-#         'USER': 'root',
-#         'PASSWORD': 'vnf4Eaa3D5M48dqYu2SyWcGT',
-#         'HOST': 'taftan.liara.cloud',
-#         'PORT': '30998',
-#     }}
-
-# local database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Projectdb',
-        'USER': 'postgres',
-        'PASSWORD': '123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': 'postgres',
+        'USER': 'root',
+        'PASSWORD': 'aZ9sY1kvfkBVJzCgwklxK8QR',
+        'HOST': 'tai.liara.cloud',
+        'PORT': '31425',
     }}
+
+# local database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'Projectdb',
+#         'USER': 'postgres',
+#         'PASSWORD': '123',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }}
 
 
 # Password validation
