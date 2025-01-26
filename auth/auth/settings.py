@@ -195,7 +195,7 @@ CORS_ALLOW_HEADERS = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
-    'https://www.bright-campus.ir'
+    'https://www.bright-campus.liara.run'
 ]
 
 MEDIA_URL = '/media/'
