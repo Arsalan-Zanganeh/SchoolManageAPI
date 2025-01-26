@@ -783,3 +783,8 @@ class StudentPictureSerializer(serializers.Serializer):
 
 class TeacherPictureSerializer(serializers.Serializer):
     profile_image = serializers.ImageField()
+
+class ChatInfoSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    Type = serializers.CharField()

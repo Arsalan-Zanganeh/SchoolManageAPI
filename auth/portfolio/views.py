@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 import jwt, datetime
 from users.models import Teacher, Student, Classes, School, ClassStudent, StudentProfile, TeacherProfile
 
-from users.serializers import StudentSerializer, TeacherSerializer, StudentPictureSerializer, TeacherPictureSerializer
+from users.serializers import StudentSerializer, TeacherSerializer, StudentPictureSerializer, TeacherPictureSerializer, \
+    ChatInfoSerializer
 
 
 # Create your views here.
@@ -111,4 +112,36 @@ class TeacherPicturePrincipalSideView(APIView):
             raise AuthenticationFailed("There is no teacher with this National_ID")
         picProf = TeacherProfile.objects.filter(teacher=teacher).first()
         serializer = TeacherPictureSerializer(picProf)
+        return Response(serializer.data)
+
+class ChatInfoView(APIView):
+    def post(self, request):
+
+        token = request.COOKIES.get('class')
+        if not token:
+            raise AuthenticationFailed("Unauthenticated!")
+        try:
+            payload = jwt.decode(token, 'django-insecure-7sr^1xqbdfcxes^!amh4e0k*0o2zqfa=f-ragz0x0v)gcqx121', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Expired token!")
+        myclass = Classes.objects.filter(id=payload['Class_ID']).first()
+        if not myclass:
+            raise AuthenticationFailed("There is no such a class")
+
+        student = Student.objects.filter(National_ID=request.data['National_ID']).first()
+        studentInClass = ClassStudent.objects.filter(Student=student, Classes=myclass)
+        teacher = Teacher.objects.filter(National_ID=request.data['National_ID']).first()
+        if not student and not teacher:
+            return Response({"message": "No student or Teacher was found with this National_ID."})
+
+        if teacher:
+            if teacher.National_ID != myclass.Teacher.National_ID:
+                raise AuthenticationFailed("Teacher is not for this class.")
+            teacher.Type="Teacher"
+            serializer = ChatInfoSerializer(teacher)
+            return Response(serializer.data)
+        if not studentInClass:
+            return AuthenticationFailed("No student was found with this National_ID in the class.")
+        student.Type = "Student"
+        serializer = ChatInfoSerializer(student)
         return Response(serializer.data)
